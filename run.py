@@ -18,7 +18,7 @@ def execute_queries(queries, url):
                 url,
                 result.text))
         else:
-            print("{}.".format(i+1), end="")
+            print("{}-Status: {}".format(i+1, result.text))
         
 
 def main(args):
@@ -42,7 +42,7 @@ if __name__ == '__main__':
          help="Run SPARQL workflow, choices: languages")
     parser.add_argument(
         '--triplestore', 
-        default="http://localhost:8080/bigdata",
+        default="http://localhost:8080/bigdata/query",
         help="Triplestore URL")
     args = parser.parse_args()
     main(args)
