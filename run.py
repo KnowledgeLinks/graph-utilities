@@ -11,7 +11,8 @@ def execute_queries(queries, url):
     for i, sparql in enumerate(queries):
         result = requests.post(
             url,
-            data={"query": sparql})
+            data={"update": sparql})
+        #print(sparql)
         if result.status_code > 399:
             print("..ERROR with {} for {}\n{}".format(
                 sparql,
@@ -42,7 +43,7 @@ if __name__ == '__main__':
          help="Run SPARQL workflow, choices: languages")
     parser.add_argument(
         '--triplestore', 
-        default="http://localhost:8080/bigdata",
+        default="http://localhost:9999/bigdata/sparql",
         help="Triplestore URL")
     args = parser.parse_args()
     main(args)
