@@ -3,7 +3,8 @@ __author__ = "Mike Stabile"
 from . import PREFIX
 
 
-ADD_ISO6391_TO_RDF_TYPE_AND_DELETE_EXTRA_FIELDS = PREFIX + """
+ADD_ISO6391_TO_RDF_TYPE_AND_DELETE_EXTRA_FIELDS = """#ADD_ISO6391_TO_RDF_TYPE_AND_DELETE_EXTRA_FIELDS
+""" + PREFIX + """
 DELETE
 {
   ?langid <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSCollection>	<http://id.loc.gov/vocabulary/iso639-1/collection_iso639-1>	.
@@ -29,7 +30,8 @@ WHERE
   ?langid <http://www.loc.gov/mads/rdf/v1#code> ?langCode .
 }"""
 
-ADD_ISO6392_LINKAGE_FROM_ISO6391_RDF_FILE = PREFIX + """
+ADD_ISO6392_LINKAGE_FROM_ISO6391_RDF_FILE = """#ADD_ISO6392_LINKAGE_FROM_ISO6391_RDF_FILE
+""" + PREFIX + """
 DELETE
 {
   ?langid <http://www.loc.gov/mads/rdf/v1#hasExactExternalAuthority> ?langURI
@@ -46,7 +48,8 @@ WHERE
   ?langid <http://www.loc.gov/mads/rdf/v1#hasExactExternalAuthority> ?langURI .
 }"""
 
-COPY_NOTES_FROM_ISO_6391 = PREFIX + """
+COPY_NOTES_FROM_ISO_6391 = """#COPY_NOTES_FROM_ISO_6391
+""" + PREFIX + """
 DELETE
 {
   ?langid	<http://www.loc.gov/mads/rdf/v1#historyNote> ?note .
@@ -67,7 +70,8 @@ WHERE
 }"""
 
 
-DELETE_LANGUAGE_NOTES = PREFIX + """{}
+DELETE_LANGUAGE_NOTES = """#DELETE_LANGUAGE_NOTES
+""" + PREFIX + """
 DELETE
 {
   ?langid <http://www.loc.gov/mads/rdf/v1#editorialNote> ?note .
@@ -79,7 +83,8 @@ WHERE
 }"""
 
 
-DELETE_MADS_ADMIN_METADATA = PREFIX + """
+DELETE_MADS_ADMIN_METADATA = """#DELETE_MADS_ADMIN_METADATA
+""" + PREFIX + """
 DELETE
 {
   ?langid <http://www.loc.gov/mads/rdf/v1#adminMetadata> ?adminObject .
@@ -90,7 +95,8 @@ WHERE
   ?langid <http://www.loc.gov/mads/rdf/v1#adminMetadata> ?adminObject .
 }"""
 
-INSERT_DBPEDIA_ABSTRACTS = PREFIX + """
+INSERT_DBPEDIA_ABSTRACTS = """#INSERT_DBPEDIA_ABSTRACTS 
+""" + PREFIX + """
 INSERT
 {
   ?langid bf:summary ?summary .
@@ -106,7 +112,8 @@ WHERE
 }
 """
 
-INSERT_DBPEDIA_LABELS = PREFIX + """
+INSERT_DBPEDIA_LABELS = """#INSERT_DBPEDIA_LABELS
+""" + PREFIX + """
 INSERT
 {
   ?langid bf:label ?langLabel .
@@ -121,7 +128,8 @@ WHERE
     } 
 }"""
 
-INSERT_LABEL_VARIANTS_FROM_BF = PREFIX + """
+INSERT_LABEL_VARIANTS_FROM_BF = """#INSERT_LABEL_VARIANTS_FROM_BF 
+""" + PREFIX + """
 DELETE
 {
   ?langid	<http://www.loc.gov/mads/rdf/v1#hasVariant> ?oo .
@@ -141,7 +149,8 @@ WHERE
 }"""
 
 
-INSERT_SOURCE_REFERENCE_AND_OWL_SAMEAS = PREFIX + """
+INSERT_SOURCE_REFERENCE_AND_OWL_SAMEAS = """#INSERT_SOURCE_REFERENCE_AND_OWL_SAMEAS
+""" + PREFIX + """
 INSERT
 {
 ?langid owl:sameAs ?dbPediaResource .  
@@ -159,7 +168,8 @@ WHERE
     } 
 }"""
 
-REFORMAT_USEFOR_DATA = PREFIX + """
+REFORMAT_USEFOR_DATA = """#REFORMAT_USEFOR_DATA
+""" + PREFIX + """
 DELETE
 {
   ?langid <http://www.loc.gov/mads/rdf/v1#useFor> ?ufObject .  
@@ -177,7 +187,8 @@ WHERE
 }
 """
 
-REMOVE_LANGUAGES_TRIPLES = PREFIX + """
+REMOVE_LANGUAGES_TRIPLES = """#REMOVE_LANGUAGES_TRIPLES
+""" + PREFIX + """
 DELETE
 {
   <http://id.loc.gov/vocabulary/languages> ?langP ?langO .  
@@ -188,7 +199,8 @@ WHERE
 }"""
 
 
-REMOVE_REST_OF_ISO6391_EXTRA_DATA = PREFIX + """
+REMOVE_REST_OF_ISO6391_EXTRA_DATA = """#REMOVE_REST_OF_ISO6391_EXTRA_DATA
+""" + PREFIX + """
 DELETE
 {
  ?langid ?p ?o .
@@ -203,7 +215,8 @@ WHERE
 }"""
 
 
-TIE_ISO6391_ENTRIES_TO_BF_LANGUAGE_ENTRY = PREFIX + """
+TIE_ISO6391_ENTRIES_TO_BF_LANGUAGE_ENTRY = """#TIE_ISO6391_ENTRIES_TO_BF_LANGUAGE_ENTRY
+""" + PREFIX + """
 DELETE
 {
   ?langid <http://www.loc.gov/mads/rdf/v1#hasExactExternalAuthority> ?langURI
@@ -222,7 +235,8 @@ WHERE
 
 
 
-UPDATE_BASE_LANGUAGE_ENTRIES = PREFIX + """
+UPDATE_BASE_LANGUAGE_ENTRIES = """#UPDATE_BASE_LANGUAGE_ENTRIES
+""" + PREFIX + """
 DELETE
 {
   ?langid <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/languages> .
@@ -241,7 +255,8 @@ WHERE
   ?langid a <http://id.loc.gov/vocabulary/languages/MARC_Language> .
 }"""
 
-UPDATE_LABELS = PREFIX + """
+UPDATE_LABELS = """#UPDATE_LABELS
+""" + PREFIX + """
 DELETE
 {
   ?langid <http://www.loc.gov/mads/rdf/v1#authoritativeLabel> ?label .
@@ -256,7 +271,8 @@ WHERE
   ?langid <http://www.loc.gov/mads/rdf/v1#authoritativeLabel> ?label  .
 }"""
 
-UPDATE_LANGUAGE_CODES = PREFIX + """
+UPDATE_LANGUAGE_CODES = """#UPDATE_LANGUAGE_CODES
+""" + PREFIX + """
 DELETE
 {
   ?langid <http://www.loc.gov/mads/rdf/v1#code> ?langIsoCode .
@@ -272,7 +288,8 @@ WHERE
 }"""
 
 
-UPDATE_LOCSUBJECT_REFERENCE = PREFIX + """
+UPDATE_LOCSUBJECT_REFERENCE = """#UPDATE_LOCSUBJECT_REFERENCE
+""" + PREFIX + """
 DELETE
 {
   ?langid <http://www.loc.gov/mads/rdf/v1#hasExactExternalAuthority> ?subjectId .
@@ -287,6 +304,138 @@ WHERE
   ?langid a bf:Language .
   ?langid <http://www.loc.gov/mads/rdf/v1#hasExactExternalAuthority> ?subjectId .
 }"""
+
+CONFIRM_6392_LINKAGE_WITH_ISO6392_FILE = """#CONFIRM_6392_LINKAGE_WITH_ISO6392_FILE
+""" + PREFIX + """
+DELETE
+{
+  ?bfLangURI owl:sameAs ?6392id .
+  ?6392id <http://www.loc.gov/mads/rdf/v1#hasExactExternalAuthority> ?bfLangURI
+}
+
+INSERT
+{
+  ?bfLangURI owl:sameAs ?6392id .
+}
+WHERE
+{
+?6392id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-2> .  
+?6392id <http://www.loc.gov/mads/rdf/v1#hasExactExternalAuthority> ?langid .
+  BIND(IF(STRSTARTS(STR(?langid),"http://id.loc.gov/vocabulary/languages/"),?langid,"") AS ?bfLangURI) .
+  FILTER (isURI(?bfLangURI)) .
+}"""
+
+ADJUST_RDFTYPES_BASED_ON_ISO6392_FILE = """#ADJUST_RDFTYPES_BASED_ON_ISO6392_FILE
+""" + PREFIX + """
+DELETE
+{
+
+  ?6392id rdf:type	<http://www.loc.gov/mads/rdf/v1#Language> .
+  ?6392id rdf:type	rdf:Resource .
+  ?6392id rdf:type	<http://www.loc.gov/mads/rdf/v1#Language> .
+  ?6392id rdf:type	<http://www.loc.gov/mads/rdf/v1#Authority> .
+  ?6392id rdf:type	<http://id.loc.gov/vocabulary/iso639-2/iso639-2_Language> .
+  ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-2/iso639-2_Language> .
+  ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-2> .
+}
+INSERT
+{
+  ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-2/iso639-2_Language> .
+  ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-2> .
+}
+WHERE
+{
+  ?6392id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-2> .
+  ?6392id a <http://id.loc.gov/vocabulary/iso639-2/iso639-2_Language>.
+  ?bfLangURI a	bf:Language .
+  ?bfLangURI owl:sameAs ?6392id .
+}"""
+
+CONFIRM_LANGUAGE_6392_CODES_FROM_ISO6392_FILE = """#CONFIRM_LANGUAGE_6392_CODES_FROM_ISO6392_FILE
+""" + PREFIX + """
+DELETE
+{
+  ?6392id <http://www.loc.gov/mads/rdf/v1#code> ?langCode.
+  ?bfLangURI bf:iso639_2 ?langCode.
+}
+INSERT
+{
+  ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-2/iso639-2_Language> .
+  ?bfLangURI bf:iso639_2 ?langCode.
+}
+WHERE
+{
+  ?6392id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-2> .
+  ?6392id <http://www.loc.gov/mads/rdf/v1#code> ?langCode.
+  ?bfLangURI a	bf:Language .
+  ?bfLangURI owl:sameAs ?6392id .
+}"""
+
+COPY_NOTES_FROM_ISO_6392 = """#COPY_NOTES_FROM_ISO_6392 
+""" + PREFIX + """
+DELETE
+{
+  ?langid	<http://www.loc.gov/mads/rdf/v1#historyNote> ?note .
+  ?langid	<http://www.loc.gov/mads/rdf/v1#note> ?note .
+  ?bfLangURI bf:note ?fnote .
+}
+INSERT
+{
+	?bfLangURI bf:note ?fnote
+}
+WHERE
+{
+   	{
+      SELECT ?bfLangURI ?fnote ?note ?langid WHERE {
+        <http://id.loc.gov/vocabulary/iso639-2> <http://www.loc.gov/mads/rdf/v1#hasTopMemberOfMADSScheme> ?langid.
+        ?langid	<http://www.loc.gov/mads/rdf/v1#historyNote> ?note .
+        BIND (CONCAT("ISO 639-2: ",?note) AS ?fnote) .
+        ?bfLangURI a	bf:Language .
+        ?bfLangURI owl:sameAs ?langid .}
+    } UNION {
+      SELECT ?bfLangURI ?fnote ?note ?langid WHERE {
+        <http://id.loc.gov/vocabulary/iso639-2> <http://www.loc.gov/mads/rdf/v1#hasTopMemberOfMADSScheme> ?langid.
+        ?langid	<http://www.loc.gov/mads/rdf/v1#note> ?note .
+        BIND (CONCAT("ISO 639-2: ",?note) AS ?fnote) .
+        ?bfLangURI a	bf:Language .
+        ?bfLangURI owl:sameAs ?langid .}
+    }
+}"""
+
+INSERT_LABEL_VARIANTS_FROM_ISO6392 = """#INSERT_LABEL_VARIANTS_FROM_ISO6392
+""" + PREFIX + """
+DELETE
+{
+  ?langid	<http://www.loc.gov/mads/rdf/v1#hasVariant> ?oo .
+  ?bfLangURI bf:labelVariant ?labelVariant .
+} 
+INSERT
+{
+  ?bfLangURI bf:labelVariant ?labelVariant .
+}
+WHERE
+{
+    <http://id.loc.gov/vocabulary/iso639-2> <http://www.loc.gov/mads/rdf/v1#hasTopMemberOfMADSScheme> ?langid.
+  	?langid	<http://www.loc.gov/mads/rdf/v1#hasVariant> ?oo .
+  	?oo <http://www.loc.gov/mads/rdf/v1#variantLabel> ?labelVariant .   
+	?bfLangURI a	bf:Language .
+    ?bfLangURI owl:sameAs ?langid .
+
+}"""
+
+REMOVE_REST_OF_ISO6392_EXTRA_DATA =  """#REMOVE_REST_OF_ISO6392_EXTRA_DATA
+""" + PREFIX + """
+DELETE
+{
+ ?s ?p ?o .
+}
+WHERE
+{
+  ?s ?p ?o .
+  FILTER (STRSTARTS(STR(?s), "http://id.loc.gov/vocabulary/iso639-2"))
+}"""
+
+
 
 workflow = [
     UPDATE_BASE_LANGUAGE_ENTRIES,
@@ -303,7 +452,13 @@ workflow = [
     ADD_ISO6391_TO_RDF_TYPE_AND_DELETE_EXTRA_FIELDS,
     ADD_ISO6392_LINKAGE_FROM_ISO6391_RDF_FILE,
     COPY_NOTES_FROM_ISO_6391,
-    REMOVE_REST_OF_ISO6391_EXTRA_DATA
+    REMOVE_REST_OF_ISO6391_EXTRA_DATA,
+    CONFIRM_6392_LINKAGE_WITH_ISO6392_FILE,
+    ADJUST_RDFTYPES_BASED_ON_ISO6392_FILE,
+    CONFIRM_LANGUAGE_6392_CODES_FROM_ISO6392_FILE,
+    COPY_NOTES_FROM_ISO_6392,
+    INSERT_LABEL_VARIANTS_FROM_ISO6392,
+    REMOVE_REST_OF_ISO6392_EXTRA_DATA
 ]
 #    INSERT_DBPEDIA_LABELS,   
 #    INSERT_DBPEDIA_ABSTRACTS,
