@@ -1,7 +1,7 @@
 __author__ = "Mike Stabile"
 
 from . import PREFIX
-
+from sparql.general import *
 
 ADD_ISO6391_TO_RDF_TYPE_AND_DELETE_EXTRA_FIELDS = """#ADD_ISO6391_TO_RDF_TYPE_AND_DELETE_EXTRA_FIELDS
 """ + PREFIX + """
@@ -106,7 +106,7 @@ WHERE
   ?langid bf:iso639_2 ?langIsoCode .
   SERVICE <http://DBpedia.org/sparql>
     { 
-      ?dbPediaResource dbpo:iso6392Code ?langIsoCode .
+      ?dbPediaResource dbpo:iso6393Code ?langIsoCode .
       ?dbPediaResource dbpo:abstract ?summary .
     } 
 }
@@ -123,7 +123,7 @@ WHERE
   ?langid bf:iso639_2 ?langIsoCode .
   SERVICE <http://DBpedia.org/sparql>
     { 
-      ?dbPediaResource dbpo:iso6392Code ?langIsoCode .
+      ?dbPediaResource dbpo:iso6393Code ?langIsoCode .
       ?dbPediaResource rdfs:label ?langLabel .
     } 
 }"""
@@ -143,7 +143,7 @@ WHERE
     <http://id.loc.gov/vocabulary/iso639-1> <http://www.loc.gov/mads/rdf/v1#hasTopMemberOfMADSScheme> ?langid.
   	?langid	<http://www.loc.gov/mads/rdf/v1#hasVariant> ?oo .
   	?oo <http://www.loc.gov/mads/rdf/v1#variantLabel> ?labelVariant .   
-	?bfLangURI a	bf:Language .
+	  ?bfLangURI a	bf:Language .
     ?bfLangURI owl:sameAs ?langid .
 
 }"""
@@ -164,7 +164,7 @@ WHERE
   ?langid bf:iso639_2 ?langIsoCode .
   SERVICE <http://DBpedia.org/sparql>
     { 
-      ?dbPediaResource dbpo:iso6392Code ?langIsoCode .
+      ?dbPediaResource dbpo:iso6393Code ?langIsoCode .
     } 
 }"""
 
@@ -435,7 +435,252 @@ WHERE
   FILTER (STRSTARTS(STR(?s), "http://id.loc.gov/vocabulary/iso639-2"))
 }"""
 
+CONFIRM_6395_LINKAGE_WITH_ISO6395_FILE = """#CONFIRM_6395_LINKAGE_WITH_ISO6395_FILE
+""" + PREFIX + """
+DELETE
+{
+  ?bfLangURI owl:sameAs ?6395id .
+  ?6395id <http://www.loc.gov/mads/rdf/v1#hasExactExternalAuthority> ?bfLangURI
+}
 
+INSERT
+{
+  ?bfLangURI owl:sameAs ?6395id .
+}
+WHERE
+{
+  ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-5> .
+  ?6395id <http://www.loc.gov/mads/rdf/v1#hasExactExternalAuthority> ?langid .
+  BIND(IF(STRSTARTS(STR(?langid),"http://id.loc.gov/vocabulary/languages/"),?langid,"") AS ?bfLangURI) .
+  FILTER (isURI(?bfLangURI)) .
+}"""
+
+CONSTRUCT_LANGUAGES_FOR_MISSING_ISO6395_LANGUAGES = """#CONSTRUCT_LANGUAGES_FOR_MISSING_ISO6395_LANGUAGES
+""" + PREFIX + """
+DELETE 
+{
+  ?newBfLangURI a <http://bibframe.org/vocab/Language>,
+               <http://id.loc.gov/vocabulary/iso639-5/iso639-5_Language>,
+               <http://id.loc.gov/vocabulary/iso639-5>;
+             owl:sameAs ?6395id;
+             bf:iso639_5 ?langCode .
+  ?6395id a <http://id.loc.gov/vocabulary/iso639-5/iso639-5_Language>.
+  ?6395id <http://www.loc.gov/mads/rdf/v1#code> ?langCode .
+}
+
+INSERT 
+{
+  ?newBfLangURI a <http://bibframe.org/vocab/Language>,
+               <http://id.loc.gov/vocabulary/iso639-5/iso639-5_Language>,
+               <http://id.loc.gov/vocabulary/iso639-5>;
+             owl:sameAs ?6395id;
+             bf:iso639_5 ?langCode .
+}
+
+WHERE
+{
+  ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-5> .
+  OPTIONAL {?bfLangURI a	bf:Language .
+            ?bfLangURI owl:sameAs ?6395id .}
+  FILTER (!bound(?bfLangURI)).
+  ?6395id <http://www.loc.gov/mads/rdf/v1#code> ?langCode .
+  BIND (URI(CONCAT("http://id.loc.gov/vocabulary/languages/",?langCode)) as ?newBfLangURI)
+  
+}"""
+
+INSERT_SHORTLABELS_FOR_MISSING_ISO6395_LANGUAGES = """#INSERT_SHORTLABELS_FOR_MISSING_ISO6395_LANGUAGES
+""" + PREFIX + """
+DELETE
+{
+  ?bfLangURI bf:label ?label .
+  ?6395id <http://www.loc.gov/mads/rdf/v1#authoritativeLabel> ?label
+}
+
+INSERT
+{
+  ?bfLangURI bf:label ?label .
+}
+
+WHERE
+{
+  ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-5> .
+  ?bfLangURI a	bf:Language .
+  ?bfLangURI owl:sameAs ?6395id .
+  OPTIONAL {?bfLangURI bf:shortLabel ?bfLabel .}
+  FILTER (!bound(?bfLabel)).
+  ?6395id <http://www.loc.gov/mads/rdf/v1#authoritativeLabel> ?label.
+}"""
+
+
+
+COPY_NOTES_FROM_ISO_6395 = """#COPY_NOTES_FROM_ISO_6395
+""" + PREFIX + """
+DELETE
+{
+  ?6395id	<http://www.loc.gov/mads/rdf/v1#historyNote> ?note .
+  ?6395id	<http://www.loc.gov/mads/rdf/v1#note> ?note .
+  ?6395id	<http://www.loc.gov/mads/rdf/v1#scopeNote> ?note .
+  ?bfLangURI bf:note ?fnote .
+}
+INSERT
+{
+	?bfLangURI bf:note ?fnote
+}
+WHERE
+{
+   	{
+      SELECT ?bfLangURI ?fnote ?note ?6395id WHERE {
+        ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-5> .
+        ?6395id	<http://www.loc.gov/mads/rdf/v1#historyNote> ?note .
+        BIND (CONCAT("ISO 639-5: ",?note) AS ?fnote) .
+        ?bfLangURI a	bf:Language .
+        ?bfLangURI owl:sameAs ?6395id .}
+    } UNION {
+      SELECT ?bfLangURI ?fnote ?note ?6395id WHERE {
+        ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-5> .
+        ?6395id	<http://www.loc.gov/mads/rdf/v1#note> ?note .
+        BIND (CONCAT("ISO 639-5: ",?note) AS ?fnote) .
+        ?bfLangURI a	bf:Language .
+        ?bfLangURI owl:sameAs ?6395id .}
+    } UNION {
+      SELECT ?bfLangURI ?fnote ?note ?6395id WHERE {
+        ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-5> .
+        ?6395id	<http://www.loc.gov/mads/rdf/v1#scopeNote> ?note .
+        BIND (?note AS ?fnote) .
+        ?bfLangURI a	bf:Language .
+        ?bfLangURI owl:sameAs ?6395id .}
+    }
+}"""
+
+INSERT_LABEL_VARIANTS_FROM_ISO6395 = """#INSERT_LABEL_VARIANTS_FROM_ISO6395
+""" + PREFIX + """
+DELETE
+{
+  ?6395id	<http://www.loc.gov/mads/rdf/v1#hasVariant> ?oo .
+  ?bfLangURI bf:labelVariant ?labelVariant .
+} 
+INSERT
+{
+  ?bfLangURI bf:labelVariant ?labelVariant .
+}
+WHERE
+{
+    ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-5> .
+  	?6395id	<http://www.loc.gov/mads/rdf/v1#hasVariant> ?oo .
+  	?oo <http://www.loc.gov/mads/rdf/v1#variantLabel> ?labelVariant .   
+	?bfLangURI a	bf:Language .
+    ?bfLangURI owl:sameAs ?6395id .
+
+}"""
+
+CONFIRM_LANGUAGE_6395_CODES_FROM_ISO6395_FILE = """#CONFIRM_LANGUAGE_6395_CODES_FROM_ISO6395_FILE
+""" + PREFIX + """
+DELETE
+{
+  ?6395id <http://www.loc.gov/mads/rdf/v1#code> ?langCode.
+  ?bfLangURI bf:iso639_5 ?langCode.
+}
+INSERT
+{
+  ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-5/iso639-5_Language> .
+  ?bfLangURI bf:iso639_5 ?langCode.
+}
+WHERE
+{
+  ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-5> .
+  ?6395id <http://www.loc.gov/mads/rdf/v1#code> ?langCode.
+  ?bfLangURI a	bf:Language .
+  ?bfLangURI owl:sameAs ?6395id .
+}"""
+
+ADJUST_RDFTYPES_BASED_ON_ISO6395_FILE = """#ADJUST_RDFTYPES_BASED_ON_ISO6395_FILE
+""" + PREFIX + """
+DELETE
+{
+
+  ?6395id rdf:type	<http://www.loc.gov/mads/rdf/v1#Language> .
+  ?6395id rdf:type	rdf:Resource .
+  ?6395id rdf:type	<http://www.loc.gov/mads/rdf/v1#Language> .
+  ?6395id rdf:type	<http://www.loc.gov/mads/rdf/v1#Authority> .
+  ?6395id rdf:type	<http://id.loc.gov/vocabulary/iso639-5/iso639-5_Language> .
+  ?6395id <http://www.loc.gov/mads/rdf/v1#isTopMemberOfMADSScheme> <http://id.loc.gov/vocabulary/iso639-5> .
+  ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-5/iso639-5_Language> .
+  ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-5> .
+}
+INSERT
+{
+  ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-5/iso639-5_Language> .
+  ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-5> .
+}
+WHERE
+{
+  ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-5> .
+  ?bfLangURI a	bf:Language .
+  ?bfLangURI owl:sameAs ?6395id .
+}"""
+
+ADJUST_RDFTYPES_BASED_ON_COLLECTIONS_IN_ISO6395_FILE = """#ADJUST_RDFTYPES_BASED_ON_COLLECTIONS_IN_ISO6395_FILE
+""" + PREFIX + """
+DELETE
+{
+  ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSCollection> ?rdfType .
+  ?bfLangURI a ?rdfType .
+}
+INSERT
+{
+  ?bfLangURI a ?rdfType .
+}
+WHERE
+{
+  ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-5> .
+  ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSCollection> ?rdfType .
+  ?bfLangURI a	bf:Language .
+  ?bfLangURI owl:sameAs ?6395id .
+}"""
+
+ADJUST_ADD_SKOS_BROADER_RELATIONSHIPS_FROM_ISO6395 ="""#ADJUST_ADD_SKOS_BROADER_RELATIONSHIPS_FROM_ISO6395
+""" + PREFIX + """
+DELETE
+{
+  ?6395id <http://www.loc.gov/mads/rdf/v1#hasBroaderAuthority> ?broader
+}
+INSERT
+{
+  ?bfLangURI skos:broader ?rdfType .
+}
+WHERE
+{
+  ?6395id <http://www.loc.gov/mads/rdf/v1#isMemberOfMADSScheme>	<http://id.loc.gov/vocabulary/iso639-5> .
+  ?6395id <http://www.loc.gov/mads/rdf/v1#hasBroaderAuthority> ?broader .
+  ?bfLangURI a	bf:Language .
+  ?bfLangURI owl:sameAs ?6395id .
+}"""
+
+REMOVE_REST_OF_ISO6395_EXTRA_DATA = """#REMOVE_REST_OF_ISO6395_EXTRA_DATA
+""" + PREFIX + """
+DELETE
+{
+ ?s ?p ?o .
+}
+WHERE
+{
+  ?s ?p ?o .
+  FILTER (STRSTARTS(STR(?s), "http://id.loc.gov/vocabulary/iso639-5"))
+}"""
+
+CLEAN_MISC_MADS_TRIPLES = """#CLEAN_MISC_MADS_TRIPLES
+""" + PREFIX + """
+DELETE
+{
+  <http://id.loc.gov/vocabulary/languages/collection_PastPresentLanguagesEntries> ?p ?o . 
+  <http://id.loc.gov/vocabulary/iso639-1/collection_PastPresentISO639-1Entries> ?pp ?oo .
+}
+
+WHERE
+{
+  <http://id.loc.gov/vocabulary/languages/collection_PastPresentLanguagesEntries> ?p ?o . 
+  <http://id.loc.gov/vocabulary/iso639-1/collection_PastPresentISO639-1Entries> ?pp ?oo .
+}"""
 
 workflow = [
     UPDATE_BASE_LANGUAGE_ENTRIES,
@@ -445,9 +690,7 @@ workflow = [
     UPDATE_LANGUAGE_CODES,
     DELETE_LANGUAGE_NOTES,   
     REMOVE_LANGUAGES_TRIPLES,   
-
     REFORMAT_USEFOR_DATA,
-    INSERT_SOURCE_REFERENCE_AND_OWL_SAMEAS,
     TIE_ISO6391_ENTRIES_TO_BF_LANGUAGE_ENTRY,   
     ADD_ISO6391_TO_RDF_TYPE_AND_DELETE_EXTRA_FIELDS,
     ADD_ISO6392_LINKAGE_FROM_ISO6391_RDF_FILE,
@@ -458,7 +701,22 @@ workflow = [
     CONFIRM_LANGUAGE_6392_CODES_FROM_ISO6392_FILE,
     COPY_NOTES_FROM_ISO_6392,
     INSERT_LABEL_VARIANTS_FROM_ISO6392,
-    REMOVE_REST_OF_ISO6392_EXTRA_DATA
+    REMOVE_REST_OF_ISO6392_EXTRA_DATA,
+    CONFIRM_6395_LINKAGE_WITH_ISO6395_FILE,
+    CONSTRUCT_LANGUAGES_FOR_MISSING_ISO6395_LANGUAGES,
+    INSERT_SHORTLABELS_FOR_MISSING_ISO6395_LANGUAGES,
+    COPY_NOTES_FROM_ISO_6395,
+    INSERT_LABEL_VARIANTS_FROM_ISO6395,
+    CONFIRM_LANGUAGE_6395_CODES_FROM_ISO6395_FILE,
+    ADJUST_RDFTYPES_BASED_ON_ISO6395_FILE,
+    ADJUST_RDFTYPES_BASED_ON_COLLECTIONS_IN_ISO6395_FILE,
+    ADJUST_ADD_SKOS_BROADER_RELATIONSHIPS_FROM_ISO6395,
+    REMOVE_REST_OF_ISO6395_EXTRA_DATA,
+    CLEAN_MISC_MADS_TRIPLES,
+    INSERT_DBPEDIA_LABELS,   
+    INSERT_DBPEDIA_ABSTRACTS,
+    INSERT_SOURCE_REFERENCE_AND_OWL_SAMEAS,
+    CLEAN_UP_ORPHAN_BLANK_NODES,
+    CLEAN_UP_ORPHAN_BLANK_NODES,
+    CLEAN_UP_ORPHAN_BLANK_NODES, 
 ]
-#    INSERT_DBPEDIA_LABELS,   
-#    INSERT_DBPEDIA_ABSTRACTS,
