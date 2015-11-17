@@ -20,7 +20,8 @@ def execute_queries(queries, url):
                 sparql,
                 url,
                 result.text))
-            
+
+#The below test query was to test direct links one at a time for a service call to dbpedia            
 def test_queries(queries, url):
    result = requests.post(
         url,
