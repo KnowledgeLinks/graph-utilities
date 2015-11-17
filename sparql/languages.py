@@ -97,35 +97,102 @@ WHERE
 
 INSERT_DBPEDIA_ABSTRACTS = """#INSERT_DBPEDIA_ABSTRACTS 
 """ + PREFIX + """
+DELETE
+{
+  ?bfLangId bf:summary ?summary .
+}
 INSERT
 {
-  ?langid bf:summary ?summary .
+  ?bfLangId bf:summary ?summary .
 }
-WHERE
+WHERE 
 {
-  ?langid bf:iso639_2 ?langIsoCode .
+
+  ?bfLangId a bf:Language .
+  ?bfLangId dbo:wikiPageID ?wiki .
+
   SERVICE <http://DBpedia.org/sparql>
     { 
-      ?dbPediaResource dbpo:iso6393Code ?langIsoCode .
-      ?dbPediaResource dbpo:abstract ?summary .
-    } 
+      ?dbPediaResource a dbo:Language .
+      ?dbPediaResource dbo:wikiPageID  ?wiki .
+      ?dbPediaResource dbo:abstract ?summary .
+    }
 }
 """
+INSERT_DBPEDIA_ABSTRACTS_2 = """#INSERT_DBPEDIA_ABSTRACTS_2
+""" + PREFIX + """
+DELETE
+{
+  ?bfLangId bf:summary ?summary .
+}
+INSERT
+{
+  ?bfLangId bf:summary ?summary .
+}
+WHERE 
+{
+
+  OPTIONAL {
+    ?bfLangId a bf:Language .
+    ?bfLangId dbo:wikiPageID ?wiki .
+    OPTIONAL {?bfLangId bf:summary ?sum} .
+    filter (!bound(?sum))
+  }
+  SERVICE <http://DBpedia.org/sparql>
+    { 
+      ?dbPediaResource dbo:wikiPageID  ?wiki .
+      ?dbPediaResource dbo:abstract ?summary .
+    }
+
+}"""
 
 INSERT_DBPEDIA_LABELS = """#INSERT_DBPEDIA_LABELS
 """ + PREFIX + """
+DELETE
+{
+  ?bfLangId bf:label ?label
+}
 INSERT
 {
-  ?langid bf:label ?langLabel .
+  ?bfLangId bf:label ?label
 }
-WHERE
+WHERE 
 {
-  ?langid bf:iso639_2 ?langIsoCode .
+
+  ?bfLangId a bf:Language .
+  ?bfLangId dbo:wikiPageID ?wiki .
+
   SERVICE <http://DBpedia.org/sparql>
     { 
-      ?dbPediaResource dbpo:iso6393Code ?langIsoCode .
-      ?dbPediaResource rdfs:label ?langLabel .
-    } 
+      ?dbPediaResource a dbo:Language .
+      ?dbPediaResource dbo:wikiPageID  ?wiki .
+      ?dbPediaResource rdfs:label ?label
+    }
+}"""
+INSERT_DBPEDIA_LABELS_2 = """#INSERT_DBPEDIA_LABELS_2
+""" + PREFIX + """
+DELETE
+{
+  ?bfLangId bf:label ?label .
+}
+INSERT
+{
+  ?bfLangId bf:label ?label .
+}
+WHERE 
+{
+
+  OPTIONAL {
+    ?bfLangId a bf:Language .
+    ?bfLangId dbo:wikiPageID ?wiki .
+    OPTIONAL {?bfLangId bf:label ?lab} .
+    filter (!bound(?lab))
+  }
+  SERVICE <http://DBpedia.org/sparql>
+    { 
+      ?dbPediaResource dbo:wikiPageID  ?wiki .
+      ?dbPediaResource rdfs:label ?label .
+    }
 }"""
 
 INSERT_LABEL_VARIANTS_FROM_BF = """#INSERT_LABEL_VARIANTS_FROM_BF 
@@ -149,23 +216,26 @@ WHERE
 }"""
 
 
-INSERT_SOURCE_REFERENCE_AND_OWL_SAMEAS = """#INSERT_SOURCE_REFERENCE_AND_OWL_SAMEAS
+INSERT_SOURCE_REFERENCE = """#INSERT_SOURCE_REFERENCE
 """ + PREFIX + """
 INSERT
 {
-?langid owl:sameAs ?dbPediaResource .  
-?langid bf:dataSource [
+?bfLangId bf:dataSource [
 	bf:label [rdfs:label ?dbPediaResource];
-	bf:summary [dbpo:abstract ?dbPediaResource]
+	bf:summary [dbo:abstract ?dbPediaResource]
 	]
 }
 WHERE
 {
-  ?langid bf:iso639_2 ?langIsoCode .
+
+  ?bfLangId a bf:Language .
+  ?bfLangId dbo:wikiPageID ?wiki .
+
   SERVICE <http://DBpedia.org/sparql>
     { 
-      ?dbPediaResource dbpo:iso6393Code ?langIsoCode .
-    } 
+      ?dbPediaResource a dbo:Language .
+      ?dbPediaResource dbo:wikiPageID  ?wiki .
+    }
 }"""
 
 REFORMAT_USEFOR_DATA = """#REFORMAT_USEFOR_DATA
@@ -681,6 +751,231 @@ WHERE
   <http://id.loc.gov/vocabulary/languages/collection_PastPresentLanguagesEntries> ?p ?o . 
   <http://id.loc.gov/vocabulary/iso639-1/collection_PastPresentISO639-1Entries> ?pp ?oo .
 }"""
+ESTABLISH_DBPEDIA_LINKAGE_VIA_ISO6392 = """#ESTABLISH_DBPEDIA_LINKAGE_VIA_ISO6392
+""" + PREFIX + """
+DELETE
+{
+  ?langid owl:sameAs ?dbPediaResource .
+  ?langid dbo:wikiPageID ?wikiPageID .
+}
+INSERT
+{
+  ?langid owl:sameAs ?dbPediaResource .
+  ?langid dbo:wikiPageID ?wikiPageID .
+}
+WHERE
+{
+  ?langid a	bf:Language .
+  ?langid bf:iso639_2 ?langIsoCode .
+  SERVICE <http://DBpedia.org/sparql>
+    { 
+      ?dbPediaResource dbo:iso6392Code ?langIsoCode .
+      ?dbPediaResource dbo:wikiPageID ?wikiPageID .
+    } 
+}
+"""
+ESTABLISH_DBPEDIA_LINKAGE_VIA_ISO6393 = """#ESTABLISH_DBPEDIA_LINKAGE_VIA_ISO6393
+""" + PREFIX + """
+DELETE
+{
+  ?bfLangId owl:sameAs ?dbPediaResource .
+  ?bfLangId dbo:wikiPageID ?wikiPageID .
+}
+INSERT
+{
+  ?bfLangId owl:sameAs ?dbPediaResource .
+  ?bfLangId dbo:wikiPageID ?wikiPageID .
+}
+WHERE
+
+{
+  ?bfLangId a bf:Language .
+  OPTIONAL
+  	{
+      ?bfLangId owl:sameAs ?p .
+  		BIND (IF(STRSTARTS(STR(?p),"http://dbpedia.org/resource/"),?p,"") as ?dbpObject) .
+  		?bfLangId owl:sameAs ?dbpObject .
+      }
+	FILTER (!bound(?dbpObject)) .
+  ?bfLangId bf:iso639_2 ?code .
+   SERVICE <http://DBpedia.org/sparql>
+    { 
+      ?dbPediaResource dbo:iso6393Code ?code .
+      ?dbPediaResource dbo:wikiPageID ?wikiPageID .
+    } 
+}
+"""
+
+GENERATE_TEMP_ISO_EN_TAGS_FOR_DBPEDIA_LINKAGE = """#GENERATE_TEMP_ISO_EN_TAGS_FOR_DBPEDIA_LINKAGE
+""" + PREFIX + """
+INSERT
+	{?bfLangId bf:temp ?enCode}
+WHERE
+
+{
+  ?bfLangId a bf:Language .
+  OPTIONAL
+  	{
+      ?bfLangId owl:sameAs ?p .
+  		BIND (IF(STRSTARTS(STR(?p),"http://dbpedia.org/resource/"),?p,"") as ?dbpObject) .
+  		?bfLangId owl:sameAs ?dbpObject .
+      }
+	FILTER (!bound(?dbpObject)) .
+  	?bfLangId bf:iso639_5 ?code .
+  	BIND (STRLANG(STR(?code),"en") as ?enCode) .
+  
+}"""
+
+LINK_TEMP_ISO_EN_TAGS_FOR_DBPEDIA = """#LINK_TEMP_ISO_EN_TAGS_FOR_DBPEDIA
+""" + PREFIX + """
+INSERT
+	{
+	  ?bfLangId owl:sameAs ?dbPediaResource .
+	  ?bfLangId dbo:wikiPageID ?wikiPageID
+	}
+WHERE
+{
+  ?bfLangId a bf:Language .
+  ?bfLangId bf:temp ?enCode .
+   
+  SERVICE <http://DBpedia.org/sparql> 
+  { 
+    ?dbPediaResource <http://dbpedia.org/property/iso> ?enCode . 
+    ?dbPediaResource dbo:wikiPageID ?wikiPageID .
+  }
+  
+}"""
+
+ESTABLISH_DBPEDIA_LINKAGE_VIA_ISO6391 = """#ESTABLISH_DBPEDIA_LINKAGE_VIA_ISO6391
+""" + PREFIX + """
+DELETE
+{
+  ?bfLangId owl:sameAs ?dbPediaResource .
+  ?bfLangId dbo:wikiPageID ?wikiPageID .
+}
+INSERT
+{
+  ?bfLangId owl:sameAs ?dbPediaResource .
+  ?bfLangId dbo:wikiPageID ?wikiPageID .
+}
+WHERE
+
+{
+  ?bfLangId a bf:Language .
+  OPTIONAL
+  	{
+      ?bfLangId owl:sameAs ?p .
+  		BIND (IF(STRSTARTS(STR(?p),"http://dbpedia.org/resource/"),?p,"") as ?dbpObject) .
+  		?bfLangId owl:sameAs ?dbpObject .
+      }
+	FILTER (!bound(?dbpObject)) .
+  ?bfLangId bf:iso639_1 ?code .
+   SERVICE <http://DBpedia.org/sparql>
+    { 
+      ?dbPediaResource dbo:iso6391Code ?code .
+      ?dbPediaResource dbo:wikiPageID ?wikiPageID .
+    } 
+}
+"""
+
+GENERATE_TEMP_REDIRECT_TAGS_FOR_DBPEDIA_LINKAGE = """#GENERATE_TEMP_REDIRECT_TAGS_FOR_DBPEDIA_LINKAGE 
+""" + PREFIX + """
+DELETE {?bfLangId bf:tempR ?dbRedirect}
+INSERT {?bfLangId bf:tempR ?dbRedirect}
+WHERE
+
+{
+  ?bfLangId a bf:Language .
+  OPTIONAL
+  	{
+      ?bfLangId owl:sameAs ?p .
+  		BIND (IF(STRSTARTS(STR(?p),"http://dbpedia.org/resource/"),?p,"") as ?dbpObject) .
+  		?bfLangId owl:sameAs ?dbpObject .
+    }
+	FILTER (!bound(?dbpObject)) .
+	OPTIONAL {?bfLangId bf:iso639_5 ?code .}
+  OPTIONAL {?bfLangId bf:iso639_2 ?code .}
+  BIND (URI(CONCAT("http://dbpedia.org/resource/ISO_639:",?code)) AS ?dbRedirect) .
+}"""
+
+INSERT_DBPEDIA_REDIRECT_TAGS = """#INSERT_DBPEDIA_REDIRECT_TAGS
+""" + PREFIX + """
+INSERT
+	{
+	  ?dbr bf:tempRR ?dbpResource .
+	  ?dbr dbo:wikiPageID ?wikiPageID .
+	}
+WHERE
+{
+  
+  SERVICE <http://DBpedia.org/sparql> {	
+    ?dbr <http://dbpedia.org/ontology/wikiPageRedirects> ?dbpResource .
+    FILTER (STRSTARTS(STR(?dbr),"http://dbpedia.org/resource/ISO_639")) .
+    ?dbpResource dbo:wikiPageID ?wikiPageID .
+  }
+  
+}"""
+
+USE_DBPEDIA_REDIRECT_TAGS_LINKAGE = """#USE_DBPEDIA_REDIRECT_TAGS_LINKAGE
+""" + PREFIX + """
+DELETE
+	{
+	  ?bfLangId owl:sameAs ?dbr .
+	  ?bfLangId dbo:wikiPageID ?wikiPageID .
+	}
+INSERT
+	{
+	  ?bfLangId owl:sameAs ?dbr .
+	  ?bfLangId dbo:wikiPageID ?wikiPageID .
+	}
+WHERE
+{
+  ?bfLangId a bf:Language .
+  ?bfLangId bf:tempR ?dbRedirect .
+  ?dbRedirect bf:tempRR ?dbr.
+  ?dbRedirect dbo:wikiPageID ?wikiPageID .
+  FILTER (?dbr!=<http://dbpedia.org/resource/ISO_639-3>)
+}"""
+
+DELETE_TEMP_TRIPLES_1 = """#DELETE_TEMP_TRIPLES_1
+""" + PREFIX + """
+DELETE
+{
+  ?s bf:temp ?o .
+}
+  
+WHERE
+
+{
+  ?s bf:temp ?o .
+}"""
+
+DELETE_TEMP_TRIPLES_2 = """#DELETE_TEMP_TRIPLES_2
+""" + PREFIX + """
+DELETE
+{
+  ?s bf:tempR ?o .
+}
+  
+WHERE
+
+{
+  ?s bf:tempR ?o .
+}"""
+DELETE_TEMP_TRIPLES_3 = """#DELETE_TEMP_TRIPLES_3
+""" + PREFIX + """
+DELETE
+{
+  ?s bf:tempRR ?o .
+  ?s dbo:wikiPageID ?oo .
+}
+  
+WHERE
+
+{
+  ?s bf:tempRR ?o .
+  ?s dbo:wikiPageID ?oo .
+}"""
 
 workflow = [
     UPDATE_BASE_LANGUAGE_ENTRIES,
@@ -713,9 +1008,22 @@ workflow = [
     ADJUST_ADD_SKOS_BROADER_RELATIONSHIPS_FROM_ISO6395,
     REMOVE_REST_OF_ISO6395_EXTRA_DATA,
     CLEAN_MISC_MADS_TRIPLES,
-    INSERT_DBPEDIA_LABELS,   
+    ESTABLISH_DBPEDIA_LINKAGE_VIA_ISO6392,
+    ESTABLISH_DBPEDIA_LINKAGE_VIA_ISO6393,
+    GENERATE_TEMP_ISO_EN_TAGS_FOR_DBPEDIA_LINKAGE,
+    LINK_TEMP_ISO_EN_TAGS_FOR_DBPEDIA,
+    ESTABLISH_DBPEDIA_LINKAGE_VIA_ISO6391,
+    GENERATE_TEMP_REDIRECT_TAGS_FOR_DBPEDIA_LINKAGE,
+    INSERT_DBPEDIA_REDIRECT_TAGS,
+    USE_DBPEDIA_REDIRECT_TAGS_LINKAGE,
+    DELETE_TEMP_TRIPLES_1,
+    DELETE_TEMP_TRIPLES_2,
+    DELETE_TEMP_TRIPLES_3,
+    INSERT_DBPEDIA_LABELS, 
+    INSERT_DBPEDIA_LABELS_2,  
     INSERT_DBPEDIA_ABSTRACTS,
-    INSERT_SOURCE_REFERENCE_AND_OWL_SAMEAS,
+    INSERT_DBPEDIA_ABSTRACTS_2,
+    INSERT_SOURCE_REFERENCE,
     CLEAN_UP_ORPHAN_BLANK_NODES,
     CLEAN_UP_ORPHAN_BLANK_NODES,
     CLEAN_UP_ORPHAN_BLANK_NODES, 

@@ -21,7 +21,38 @@ def execute_queries(queries, url):
                 url,
                 result.text))
             
-        
+def test_queries(queries, url):
+   result = requests.post(
+        url,
+        data={"query": """PREFIX bf: <http://bibframe.org/vocab/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+SELECT ?ref WHERE { ?bfLangId bf:dbpRef ?ref .}""",
+        'format':'json'})
+   uriItems = result.json().get('results').get('bindings')
+   for uri in uriItems:
+       qryStr = """PREFIX bf: <http://bibframe.org/vocab/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+SELECT * WHERE 
+{ 
+  SERVICE <http://DBpedia.org/sparql>
+    { 
+       <"""+ uri.get('ref').get('value') + """> rdfs:label ?langLabel.
+    }.
+}"""
+       testUri = requests.post(
+           url,
+           data={"query": qryStr,
+           'format':'json'})
+       print(uri.get('ref').get('value') ," | " ,testUri.status_code)
+       print(qryStr)
+       if testUri.status_code > 399:    	
+           print("Error")
+
+ 
 
 def main(args):
     start = datetime.datetime.now()
@@ -30,6 +61,8 @@ def main(args):
         start.isoformat()))
     if args.workflow.startswith("languages"):
         execute_queries(languages, args.triplestore)
+    if args.workflow.startswith("test"):
+        test_queries(languages, args.triplestore)
     end = datetime.datetime.now()
     print("\nFinished {} Workflow at {}, total time={} min".format(
         end.isoformat(),
@@ -40,8 +73,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'workflow',
-         choices=['languages'],
-         help="Run SPARQL workflow, choices: languages")
+         choices=['languages','test'],
+         help="Run SPARQL workflow, choices: languages, test")
     parser.add_argument(
         '--triplestore', 
         default="http://localhost:9999/bigdata/sparql",
