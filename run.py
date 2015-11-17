@@ -5,7 +5,8 @@ import datetime
 import requests
 from sparql.general import *
 from sparql.languages import workflow as languages
-
+from sparql.__init__ import CONSTRUCT_GRAPH_PRE_URI
+from sparql.__init__ import CONSTRUCT_GRAPH_POST_URI
 
 def execute_queries(queries, url):
     for i, sparql in enumerate(queries):
@@ -53,6 +54,17 @@ SELECT * WHERE
        if testUri.status_code > 399:    	
            print("Error")
 
+def pull_graph(uriString, url):
+   QSTR = CONSTRUCT_GRAPH_PRE_URI+" <"+uriString.strip()+"> "+CONSTRUCT_GRAPH_POST_URI
+   print(QSTR)
+   result = requests.post(
+        url,
+        data={"query": QSTR}
+        )
+   print(result.text)
+   if result.status_code > 399:    	
+       print("Error")
+
  
 
 def main(args):
@@ -64,6 +76,8 @@ def main(args):
         execute_queries(languages, args.triplestore)
     if args.workflow.startswith("test"):
         test_queries(languages, args.triplestore)
+    if args.workflow.startswith("graph"):
+        pull_graph(args.graphuri, args.triplestore)
     end = datetime.datetime.now()
     print("\nFinished {} Workflow at {}, total time={} min".format(
         end.isoformat(),
@@ -74,11 +88,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'workflow',
-         choices=['languages','test'],
-         help="Run SPARQL workflow, choices: languages, test")
+         choices=['languages','test','graph'],
+         help="Run SPARQL workflow, choices: languages, test, graph")
     parser.add_argument(
         '--triplestore', 
-        default="http://localhost:9999/bigdata/sparql",
+        default="http://localhost:8080/bigdata/sparql",
         help="Triplestore URL")
+    parser.add_argument(
+        '--graphuri', 
+        default="",
+        help="String of Resouce URI")
     args = parser.parse_args()
     main(args)
