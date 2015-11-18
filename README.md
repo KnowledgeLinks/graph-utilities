@@ -18,7 +18,7 @@ Run the following command to pull a graph
 
 **** use json object notation; both object and value must have quotes
 
-`'pulltype': 'all'--write triple statement in 'sparqlselect'`
+`'pulltype': 'all'--write triple statement in 'sparqlselect'`\n
             `'resource'--write resourceURI in the 'resourceURI' variable`
                         
 `'resourceuri':  used with 'pulltype'=resource -- write resourceURI as a string WITHOUT <>`
