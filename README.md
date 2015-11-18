@@ -28,7 +28,7 @@ Run the following command to pull a graph
 `                 example: ?s1 rdf:type bf:Language   --will return all the language graphs`
          
 `'format':  Use the header value of the rest API of the desired outputtype` 
-`           Example: for turtle 'application/x-turtle'`
+`            Example: for turtle 'application/x-turtle'`
                  
 `'filename': 'default' will use the sparql header provided filename.`
              `otherwise specify your own value`
