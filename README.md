@@ -13,7 +13,7 @@ Run the following command to pull a graph
 `python run.py graph --graphargs "{see below}"`
     
     default graphargs = "{'pulltype':'all','sparqlselect':
-                         "s1 a bf:Language','format':'application/x-turtle',
+                         "?s1 a bf:Language','format':'application/x-turtle',
                          'filename':'bibcatlanguages.ttl'}"
 
 **** use json object notation; both object and value must have quotes
