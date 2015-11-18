@@ -8,7 +8,7 @@ against a triplestore SPARQL endpoint using REST.
 
 `python3 run.py languages`
 
-Run the following command to pull the graph of a specific resourse and save it to a ttl file
+Run the following command to pull a graph
 
 `python run.py graph --graphargs "{see below}"`
     
