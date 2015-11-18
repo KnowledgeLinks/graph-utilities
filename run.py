@@ -3,6 +3,7 @@ __author__ = "Jeremy Nelson"
 import argparse
 import datetime
 import requests
+import rdflib
 from sparql.general import *
 from sparql.languages import workflow as languages
 from sparql.__init__ import CONSTRUCT_GRAPH_PRE_URI
@@ -56,14 +57,18 @@ SELECT * WHERE
 
 def pull_graph(uriString, url):
    QSTR = CONSTRUCT_GRAPH_PRE_URI+" <"+uriString.strip()+"> "+CONSTRUCT_GRAPH_POST_URI
-   print(QSTR)
    result = requests.post(
         url,
         data={"query": QSTR},
         headers={"Accept":"application/x-turtle"}
         )
-   print(result.headers['content-type'])
-   print(result.content)
+   fName = result.headers.get('Content-disposition')[result.headers.get('Content-disposition').find("=")+1:]
+   result.encoding = 'utf-8'
+   file = open(fName, "wb")
+   file.write(result.content)
+   file.close()	
+   print("File saved as: ",fName)
+
    if result.status_code > 399:    	
        print("Error")
 
