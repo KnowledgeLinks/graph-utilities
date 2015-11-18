@@ -47,8 +47,8 @@ SELECT * WHERE
 }"""
        testUri = requests.post(
            url,
-           data={"query": qryStr,
-           'format':'json'})
+           data={"query": qryStr},
+           headers={"Accept":"application/json"})
        print(uri.get('ref').get('value') ," | " ,testUri.status_code)
        print(qryStr)
        if testUri.status_code > 399:    	
@@ -59,9 +59,11 @@ def pull_graph(uriString, url):
    print(QSTR)
    result = requests.post(
         url,
-        data={"query": QSTR}
+        data={"query": QSTR},
+        headers={"Accept":"application/x-turtle"}
         )
-   print(result.text)
+   print(result.headers['content-type'])
+   print(result.content)
    if result.status_code > 399:    	
        print("Error")
 
