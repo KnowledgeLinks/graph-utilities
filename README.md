@@ -10,4 +10,4 @@ against a triplestore SPARQL endpoint using REST.
 
 Run the following command to pull the graph of a specific resourse and save it to a ttl file
 
-`python run.py graph --graphuri "resourceURI"`
+`python run.py graph --graphuri "resourceURIasString"`
