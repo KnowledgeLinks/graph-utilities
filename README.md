@@ -17,18 +17,17 @@ Run the following command to pull the graph of a specific resourse and save it t
                          'filename':'bibcatlanguages.ttl'}"
 
 **** use json object notation; both object and value must have quotes
-       'pulltype': 'all'--write triple statement in 'sparqlselect'
+'pulltype': 'all'--write triple statement in 'sparqlselect'
                    'resource'--write resourceURI in the 'resourceURI' variable
                         
-    'resourceuri':  used with 'pulltype'=resource -- write resourceURI as a string WITHOUT <>
+'resourceuri':  used with 'pulltype'=resource -- write resourceURI as a string WITHOUT <>
          
-   'sparqlselect':  used with 'pulltype'=all -- write the sparql triple to statment to select the 
-                    the resources that you want.
-                    variable ?s1 must contain the list of resource URIs
-                    example: ?s1 rdf:type bf:Language   --will return all the language graphs
+'sparqlselect':  used with 'pulltype'=all -- write the sparql triple to statment to select the 
+                 the resources that you want. variable ?s1 must contain the list of resource URIs
+                 example: ?s1 rdf:type bf:Language   --will return all the language graphs
          
-         'format':  Use the header value of the rest API of the desired outputtype 
-                    Example: for turtle 'application/x-turtle'
+'format':  Use the header value of the rest API of the desired outputtype 
+           Example: for turtle 'application/x-turtle'
                  
-            'filename': 'default' will use the sparl header provided filename.
-                         otherwise specify your own value
+'filename': 'default' will use the sparl header provided filename.
+            otherwise specify your own value
