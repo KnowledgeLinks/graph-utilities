@@ -12,9 +12,9 @@ CONSTRUCT_GRAPH_PRE_URI = """CONSTRUCT
 }
 WHERE
 {
-  BIND ("""
+  """
   
-CONSTRUCT_GRAPH_POST_URI = """ AS ?s1) .
+CONSTRUCT_GRAPH_POST_URI = """  .
   {
     BIND (?s1 AS ?s) .
     ?s ?p ?o .
