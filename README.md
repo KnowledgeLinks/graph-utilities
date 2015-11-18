@@ -29,5 +29,5 @@ Run the following command to pull the graph of a specific resourse and save it t
 'format':  Use the header value of the rest API of the desired outputtype 
            Example: for turtle 'application/x-turtle'
                  
-'filename': 'default' will use the sparl header provided filename.
+'filename': 'default' will use the sparql header provided filename.
             otherwise specify your own value
