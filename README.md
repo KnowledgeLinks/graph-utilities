@@ -10,7 +10,7 @@ against a triplestore SPARQL endpoint using REST.
 
 Run the following command to pull a graph
 
-`python run.py graph --graphargs "{see below}"`
+`python run.py graph --pulltype all --sparqlselect "?s1 a bf:Language" --filename "bibcatlanguages.ttl"`
     
     default graphargs = "{'pulltype':'all','sparqlselect':
                          "?s1 a bf:Language','format':'application/x-turtle',
