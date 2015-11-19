@@ -56,6 +56,18 @@ SERVICE <http://DBpedia.org/sparql>
         if testUri.status_code > 399:	
             print("Error")
 
+#The function will generate all of the fedora containers for a the languages            
+def create_fedoraContainers(url):
+   result = requests.post(
+        url,
+        data={"query": PREFIX + """SELECT ?ref WHERE { ?bfLangId a bf:Language . BIND (STR(?bfLangId) as ?ref)}""",
+        'format':'json'})
+   uriItems = result.json().get('results').get('bindings')
+   for uri in uriItems:
+       #print(uri['ref']['value'])
+       result = requests.put(uri['ref']['value'])
+
+
 def pull_graph(args):
     url = args.triplestore
     pulltype=args.get('pulltype','all')
@@ -65,9 +77,9 @@ def pull_graph(args):
         #use the resource uri to add to the query string to pull a singlegraph
         qstr="BIND(<"+args['resourceuri']+"> AS ?s1)"
     elif pulltype=="all":
-        #usetheprovidestringfromthesparlselecttopullallofthegraphvalues.
-        #thevariable?s1needstocontainalloftheresourcesthatyouwanttopull.
-	#example:?s1abf:Languagepullsallofthelanguagegraphs
+        #use the provide string from the sparl select to pull all of the graph values.
+        #the variable ?s1 needs to contain all of the resources that you want to pull.
+        #example:   ?s1 a bf:Language      pulls all of the language graphs
         qstr=args['sparqlselect']
         qstr=PREFIX+CONSTRUCT_GRAPH_PRE_URI+qstr+CONSTRUCT_GRAPH_POST_URI
     result=requests.post(
@@ -83,9 +95,7 @@ def pull_graph(args):
     print("File saved as:{}".format(fName))
     if result.status_code>399:	
         print("Error{}\n{}".format(result.status_code,result.text))
-
-
-
+       
 def main(args):
     start=datetime.datetime.now()
     print("Starting {} Workflow at {}".format(
@@ -97,8 +107,10 @@ def main(args):
         test_queries(languages, args.triplestore)
     if  args.workflow.startswith("graph"):
         pull_graph(args)
-    end=datetime.datetime.now()
-    print("\nFinished {} Workflow at {}, totaltime={} min".format(
+    if args.workflow.startswith("fedora"):
+        create_fedoraContainers(args.triplestore)
+    end = datetime.datetime.now()
+    print("\nFinished {} Workflow at {}, total time={} min".format(
         end.isoformat(),
         args.workflow,
         (end-start).seconds/60.0))
@@ -107,8 +119,8 @@ if __name__ == '__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument(
         'workflow',
-        choices=['languages','test','graph'],
-        help="Run SPARQL workflow, choices: languages,test,graph")
+         choices=['languages','fedora','graph'],
+         help="Run SPARQL workflow, choices: languages, fedora, graph")
     parser.add_argument(
         '--triplestore',
         default="http://localhost:8080/bigdata/sparql",
