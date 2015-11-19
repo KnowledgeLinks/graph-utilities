@@ -59,4 +59,10 @@ CONSTRUCT_GRAPH_POST_URI = """  .
     BIND (?p5 AS ?p) .
     BIND (?o5 AS ?o) .
   }
-}"""
+"""
+CONSTRUCT_GRAPH_PRE_LANG="""  BIND (DATATYPE(?o) AS ?DT) .
+  FILTER(IF(!bound(?DT),TRUE,IF(?DT!=rdf:langString,TRUE,if(lang(?o)='"""
+  	
+CONSTRUCT_GRAPH_POST_LANG="""',TRUE,FALSE)))) ."""
+
+CONSTRUCT_GRAPH_END="""}"""

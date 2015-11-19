@@ -1,4 +1,4 @@
-__author__="JeremyNelson"
+__author__="JeremyNelson, Mike Stabile"
 
 import argparse
 import datetime
@@ -9,6 +9,9 @@ from sparql.general import*
 from sparql.languages import workflow as languages
 from sparql import CONSTRUCT_GRAPH_PRE_URI
 from sparql import CONSTRUCT_GRAPH_POST_URI
+from sparql import CONSTRUCT_GRAPH_PRE_LANG
+from sparql import CONSTRUCT_GRAPH_POST_LANG
+from sparql import CONSTRUCT_GRAPH_END
 
 def execute_queries(queries,url):
     for i, sparql in enumerate(queries):
@@ -24,39 +27,7 @@ def execute_queries(queries,url):
                 url,
                 result.text))
 
-#The below test query was to test directlinks one at a time for a service call to dbpedia
-def test_queries(queries,url):
-    result=requests.post(
-        url,
-        data={"query":"""PREFIX bf:<http://bibframe.org/vocab/>
-PREFIX dbo:<http://dbpedia.org/ontology/>
-PREFIX dbp:<http://dbpedia.org/property/>
-PREFIX dbr:<http://dbpedia.org/resource/>
-SELECT ?ref WHERE { ?bfLangId bf:dbpRef ?ref.}""",
-        'format':'json'})
-    uriItems=result.json().get('results').get('bindings')
-    for uri in uriItems:
-        qryStr="""PREFIX bf: <http://bibframe.org/vocab/>
-PREFIX dbo: <http://dbpedia.org/ontology/>
-PREFIX dbp: <http://dbpedia.org/property/>
-PREFIX dbr: <http://dbpedia.org/resource/>
-SELECT * WHERE
-{
-SERVICE <http://DBpedia.org/sparql>
-{
-<"""+uri.get('ref').get('value')+""">rdfs:label?langLabel.
-}.
-}"""
-        testUri=requests.post(
-            url,
-            data={"query":qryStr},
-             headers={"Accept":"application/json"})
-        print(uri.get('ref').get('value'),"|",testUri.status_code)
-        print(qryStr)
-        if testUri.status_code > 399:	
-            print("Error")
-
-#The function will generate all of the fedora containers for a the languages            
+#The function will generate all of the fedora containers for the languages            
 def create_fedoraContainers(url):
    result = requests.post(
         url,
@@ -67,33 +38,52 @@ def create_fedoraContainers(url):
        #print(uri['ref']['value'])
        result = requests.put(uri['ref']['value'])
 
-
+#This function will pull a graph from the triplestore based on a resource URI or a group of resource URIs
 def pull_graph(args):
-    url = args.triplestore
-    pulltype=args.get('pulltype','all')
-    header_format=args.get('format','application/x-turtle')
-    fName=args.get('filename','default')
+    url = args.triplestore  
+    pulltype=args.pulltype  
+    header_format=args.format
+    fName=args.filename
+    langpref = args.langpref
+    returnType = 'file'
+    
     if pulltype=="resource":
         #use the resource uri to add to the query string to pull a singlegraph
-        qstr="BIND(<"+args['resourceuri']+"> AS ?s1)"
+        qstr="BIND(<"+args.resourceuri+"> AS ?s1)"
     elif pulltype=="all":
-        #use the provide string from the sparl select to pull all of the graph values.
+        #use the string from the sparl select to pull all of the graph values.
         #the variable ?s1 needs to contain all of the resources that you want to pull.
         #example:   ?s1 a bf:Language      pulls all of the language graphs
-        qstr=args['sparqlselect']
-        qstr=PREFIX+CONSTRUCT_GRAPH_PRE_URI+qstr+CONSTRUCT_GRAPH_POST_URI
+        qstr=args.sparqlselect
+    qstr=PREFIX+CONSTRUCT_GRAPH_PRE_URI+qstr+CONSTRUCT_GRAPH_POST_URI
+    
+    #langpref allows you to display the graph only in one language. 
+    if langpref == 'all languages':
+        qstr=qstr+CONSTRUCT_GRAPH_END
+    else:
+        qstr=qstr+CONSTRUCT_GRAPH_PRE_LANG+langpref+CONSTRUCT_GRAPH_POST_LANG+CONSTRUCT_GRAPH_END
+    
+    #send query to triplestore
     result=requests.post(
         url,
         data={"query":qstr},
         headers={"Accept":header_format}
     )
-    if fName=='default':
-        fName=result.headers.get('Content-disposition')[result.headers.get('Content-disposition').find("=")+1:]
-    result.encoding='utf-8'
-    with open(fName,"wb") as file_obj:
-        file_obj.write(result.content)
-    print("File saved as:{}".format(fName))
+    
+    #process results as file or return the contents to the calling function
+    if returnType == 'file':
+        if fName=='default':
+            fName=result.headers.get('Content-disposition')[result.headers.get('Content-disposition').find("=")+1:]
+        result.encoding='utf-8'
+        with open(fName,"wb") as file_obj:
+            file_obj.write(result.content)
+        print("File saved as:{}".format(fName))
+    elif returnType == 'return':
+        return result.content
+        
+    #print any error codes    
     if result.status_code>399:	
+        print(qstr)
         print("Error{}\n{}".format(result.status_code,result.text))
        
 def main(args):
@@ -132,11 +122,11 @@ if __name__ == '__main__':
         choices=["all","resource"])
     parser.add_argument(
         '--resourceuri',
-        help="Used when pulltype=resource, writes resourceURI as a string w/o <>")
+        help="Used when pulltype=resource, enter the resourceURI as a string w/o <>")
     parser.add_argument(
         '--sparqlselect',
-        help="""Used when pulltype=all, writes sparql triple to statement to
-select resource.Var ?s1 must contain resourceURIs list""")
+        help="""Used when pulltype=all, enter the sparql triple statement to
+                select the desired resources. Var ?s1 must resolve to the resourceURI list""")
     parser.add_argument(
         '--format',
         default="application/x-turtle",
@@ -145,5 +135,9 @@ select resource.Var ?s1 must contain resourceURIs list""")
         '--filename',
         default="default",
         help="Specifies filename for output file, default from sparql header")
+    parser.add_argument(
+        '--langpref',
+        default="all languages",
+        help="Enter the iso 639-1 two letter language code to return a graph with only that language")
     args=parser.parse_args()
     main(args)
