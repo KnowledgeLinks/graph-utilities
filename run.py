@@ -24,38 +24,17 @@ def execute_queries(queries, url):
                 url,
                 result.text))
 
-#The below test query was to test direct links one at a time for a service call to dbpedia            
-def test_queries(queries, url):
+#The function will generate all of the fedora containers for a the languages            
+def create_fedoraContainers(url):
    result = requests.post(
         url,
-        data={"query": """PREFIX bf: <http://bibframe.org/vocab/>
-PREFIX dbo: <http://dbpedia.org/ontology/>
-PREFIX dbp: <http://dbpedia.org/property/>
-PREFIX dbr: <http://dbpedia.org/resource/>
-SELECT ?ref WHERE { ?bfLangId bf:dbpRef ?ref .}""",
+        data={"query": PREFIX + """SELECT ?ref WHERE { ?bfLangId a bf:Language . BIND (STR(?bfLangId) as ?ref)}""",
         'format':'json'})
    uriItems = result.json().get('results').get('bindings')
    for uri in uriItems:
-       qryStr = """PREFIX bf: <http://bibframe.org/vocab/>
-PREFIX dbo: <http://dbpedia.org/ontology/>
-PREFIX dbp: <http://dbpedia.org/property/>
-PREFIX dbr: <http://dbpedia.org/resource/>
-SELECT * WHERE 
-{ 
-  SERVICE <http://DBpedia.org/sparql>
-    { 
-       <"""+ uri.get('ref').get('value') + """> rdfs:label ?langLabel.
-    }.
-}"""
-       testUri = requests.post(
-           url,
-           data={"query": qryStr},
-           headers={"Accept":"application/json"})
-       print(uri.get('ref').get('value') ," | " ,testUri.status_code)
-       print(qryStr)
-       if testUri.status_code > 399:    	
-           print("Error")
-
+       #print(uri['ref']['value'])
+       result = requests.put(uri['ref']['value'])
+       
 def pull_graph(graphargs, url):
    args = json.loads(graphargs.replace("'",'"'))
    if args['pulltype'] == "resource":
@@ -95,8 +74,8 @@ def main(args):
         start.isoformat()))
     if args.workflow.startswith("languages"):
         execute_queries(languages, args.triplestore)
-    if args.workflow.startswith("test"):
-        test_queries(languages, args.triplestore)
+    if args.workflow.startswith("fedora"):
+        create_fedoraContainers(args.triplestore)
     if args.workflow.startswith("graph"):
         pull_graph(args.graphargs, args.triplestore)
     end = datetime.datetime.now()
@@ -109,8 +88,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'workflow',
-         choices=['languages','test','graph'],
-         help="Run SPARQL workflow, choices: languages, test, graph")
+         choices=['languages','fedora','graph'],
+         help="Run SPARQL workflow, choices: languages, fedora, graph")
     parser.add_argument(
         '--triplestore', 
         default="http://localhost:8080/bigdata/sparql",
