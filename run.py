@@ -13,16 +13,6 @@ from sparql import CONSTRUCT_GRAPH_PRE_LANG
 from sparql import CONSTRUCT_GRAPH_POST_LANG
 from sparql import CONSTRUCT_GRAPH_END
 
-#utility function to see if object paramenter is set and if not return a passed in default value
-def objset (obj,param,default):
-    #print(obj)
-    try:
-        obj[param]
-    except:
-        return default
-    else:
-        return obj[param]
-    
 def execute_queries(queries,url):
     for i, sparql in enumerate(queries):
         print("{}.".format(i+1),end="")
@@ -51,11 +41,11 @@ def create_fedoraContainers(url):
 #This function will pull a graph from the triplestore based on a resource URI or a group of resource URIs
 def pull_graph(args):
     url = args['triplestore']
-    pulltype=objset(args,'pulltype','resource')  
-    header_format=objset(args,'format','application/x-turtle')
-    fName=objset(args,'filename','default')
-    langpref = objset(args,'langpref','all languages')
-    returnType = objset(args,'returntype','file')
+    pulltype = args.get('pulltype','resource')  
+    header_format = args.get('format','application/x-turtle')
+    fName = args.get('filename','default')
+    langpref = args.get('langpref','all languages')
+    returnType = args.get('returntype','file')
 
     if pulltype=="resource":
         #add the resource uri to the query string to pull a single graph
