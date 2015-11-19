@@ -95,6 +95,30 @@ WHERE
   ?langid <http://www.loc.gov/mads/rdf/v1#adminMetadata> ?adminObject .
 }"""
 
+INSERT_DBPEDIA_ABSTRACTS_OWL = """#INSERT_DBPEDIA_ABSTRACTS_OWL 
+""" + PREFIX + """
+DELETE
+{
+  ?bfLangId bf:summary ?summary
+}
+INSERT
+{?bfLangId bf:summary ?summary}
+WHERE
+{
+
+  	{
+      ?bfLangId a bf:Language .
+      ?bfLangId owl:sameAs ?p .
+      FILTER (STRSTARTS(STR(?p),"http://dbpedia.org/resource/"))
+      
+     }
+	SERVICE <http://DBpedia.org/sparql>
+	{ 
+      ?p dbo:abstract ?summary. 
+    }
+
+}"""
+
 INSERT_DBPEDIA_ABSTRACTS = """#INSERT_DBPEDIA_ABSTRACTS 
 """ + PREFIX + """
 DELETE
@@ -145,6 +169,31 @@ WHERE
     }
 
 }"""
+INSERT_DBPEDIA_LABELS_OWL = """#INSERT_DBPEDIA_LABELS_OWL
+""" + PREFIX + """
+DELETE
+{
+  ?bfLangId rdfs:label ?langLabel .
+  ?bfLangId bf:label ?langLabel
+}
+INSERT
+{?bfLangId bf:label ?langLabel}
+WHERE
+{
+
+  	{
+      ?bfLangId a bf:Language .
+      ?bfLangId owl:sameAs ?p .
+      FILTER (STRSTARTS(STR(?p),"http://dbpedia.org/resource/"))
+      
+     }
+	SERVICE <http://DBpedia.org/sparql>
+	{ 
+      ?p rdfs:label ?langLabel. 
+    }
+
+}
+"""
 
 INSERT_DBPEDIA_LABELS = """#INSERT_DBPEDIA_LABELS
 """ + PREFIX + """
@@ -1059,10 +1108,8 @@ workflow = [
     DELETE_TEMP_TRIPLES_1,
     DELETE_TEMP_TRIPLES_2,
     DELETE_TEMP_TRIPLES_3,
-    INSERT_DBPEDIA_LABELS, 
-    INSERT_DBPEDIA_LABELS_2,  
-    INSERT_DBPEDIA_ABSTRACTS,
-    INSERT_DBPEDIA_ABSTRACTS_2,
+    INSERT_DBPEDIA_LABELS_OWL, 
+    INSERT_DBPEDIA_ABSTRACTS_OWL,
     INSERT_SOURCE_REFERENCE,
     ADD_OWLSAMEAS_TAG_FOR_LANG_URI,
     CHANGE_TO_FEDORA_URI,
