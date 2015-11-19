@@ -13,6 +13,16 @@ from sparql import CONSTRUCT_GRAPH_PRE_LANG
 from sparql import CONSTRUCT_GRAPH_POST_LANG
 from sparql import CONSTRUCT_GRAPH_END
 
+#utility function to see if object paramenter is set and if not return a passed in default value
+def objset (obj,param,default):
+    #print(obj)
+    try:
+        obj[param]
+    except:
+        return default
+    else:
+        return obj[param]
+    
 def execute_queries(queries,url):
     for i, sparql in enumerate(queries):
         print("{}.".format(i+1),end="")
@@ -40,16 +50,16 @@ def create_fedoraContainers(url):
 
 #This function will pull a graph from the triplestore based on a resource URI or a group of resource URIs
 def pull_graph(args):
-    url = args.triplestore  
-    pulltype=args.pulltype  
-    header_format=args.format
-    fName=args.filename
-    langpref = args.langpref
-    returnType = 'file'
-    
+    url = args['triplestore']
+    pulltype=objset(args,'pulltype','resource')  
+    header_format=objset(args,'format','application/x-turtle')
+    fName=objset(args,'filename','default')
+    langpref = objset(args,'langpref','all languages')
+    returnType = objset(args,'returntype','file')
+
     if pulltype=="resource":
-        #use the resource uri to add to the query string to pull a singlegraph
-        qstr="BIND(<"+args.resourceuri+"> AS ?s1)"
+        #add the resource uri to the query string to pull a single graph
+        qstr="BIND(<"+args['resourceuri']+"> AS ?s1)"
     elif pulltype=="all":
         #use the string from the sparl select to pull all of the graph values.
         #the variable ?s1 needs to contain all of the resources that you want to pull.
@@ -62,7 +72,7 @@ def pull_graph(args):
         qstr=qstr+CONSTRUCT_GRAPH_END
     else:
         qstr=qstr+CONSTRUCT_GRAPH_PRE_LANG+langpref+CONSTRUCT_GRAPH_POST_LANG+CONSTRUCT_GRAPH_END
-    
+   
     #send query to triplestore
     result=requests.post(
         url,
@@ -85,24 +95,24 @@ def pull_graph(args):
     if result.status_code>399:	
         print(qstr)
         print("Error{}\n{}".format(result.status_code,result.text))
-       
+      
 def main(args):
     start=datetime.datetime.now()
     print("Starting {} Workflow at {}".format(
-        args.workflow,
+        args['workflow'],
         start.isoformat()))
-    if args.workflow.startswith("languages"):
+    if args['workflow'].startswith("languages"):
         execute_queries(languages, args.triplestore)
-    if args.workflow.startswith("test"):
+    if args['workflow'].startswith("test"):
         test_queries(languages, args.triplestore)
-    if  args.workflow.startswith("graph"):
+    if  args['workflow'].startswith("graph"):
         pull_graph(args)
-    if args.workflow.startswith("fedora"):
-        create_fedoraContainers(args.triplestore)
+    if args['workflow'].startswith("fedora"):
+        create_fedoraContainers(args['triplestore'])
     end = datetime.datetime.now()
     print("\nFinished {} Workflow at {}, total time={} min".format(
         end.isoformat(),
-        args.workflow,
+        args['workflow'],
         (end-start).seconds/60.0))
 
 if __name__ == '__main__':
@@ -139,5 +149,5 @@ if __name__ == '__main__':
         '--langpref',
         default="all languages",
         help="Enter the iso 639-1 two letter language code to return a graph with only that language")
-    args=parser.parse_args()
+    args=vars(parser.parse_args())
     main(args)
