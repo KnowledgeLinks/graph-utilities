@@ -27,16 +27,37 @@ def execute_queries(queries,url):
                 url,
                 result.text))
 
-#The function will generate all of the fedora containers for the languages            
-def create_fedoraContainers(url):
+#This function will generate a list of resource URIs as strings based on a filter for triples            
+def get_referenceURIs(filterTriple,url):
    result = requests.post(
         url,
-        data={"query": PREFIX + """SELECT ?ref WHERE { ?bfLangId a bf:Language . BIND (STR(?bfLangId) as ?ref)}""",
+        data={"query": PREFIX + "SELECT ?sReturn WHERE { " +filterTriple + " . BIND (STR(?s) AS ?sReturn) }",
         'format':'json'})
    uriItems = result.json().get('results').get('bindings')
+   returnlist = []
    for uri in uriItems:
-       #print(uri['ref']['value'])
-       result = requests.put(uri['ref']['value'])
+       returnlist.append(uri['sReturn']['value'])
+   return returnlist
+   
+#This function will generate the fedora resources
+#*** graph subjects must already be encoded to the fedoraURIs
+def generate_fedora_refs(tripleStoreURL,refType):
+    if refType == "language":
+        uriList = get_referenceURIs("?s a bf:Language",tripleStoreURL)
+    if refType == 'test':
+        uriList = ['http://localhost:8080/fedora/rest/ref/fre']
+    print("There are ",len(uriList)," references to process.")
+    i = 0
+    for uri in uriList:
+        i = i + 1
+        print(i,". ",uri)
+        args = {'triplestore':tripleStoreURL,
+            'returntype': 'return',
+            'resourceuri': uri}
+        graph = pull_graph(args)
+        graph_response = requests.put(uri,
+            data=graph,
+            headers={"Content-Type": "text/turtle"})
 
 #This function will pull a graph from the triplestore based on a resource URI or a group of resource URIs
 def pull_graph(args):
@@ -98,7 +119,7 @@ def main(args):
     if  args['workflow'].startswith("graph"):
         pull_graph(args)
     if args['workflow'].startswith("fedora"):
-        create_fedoraContainers(args['triplestore'])
+        generate_fedora_refs(args['triplestore'],args['fedoraaction'])
     end = datetime.datetime.now()
     print("\nFinished {} Workflow at {}, total time={} min".format(
         end.isoformat(),
@@ -139,5 +160,9 @@ if __name__ == '__main__':
         '--langpref',
         default="all languages",
         help="Enter the iso 639-1 two letter language code to return a graph with only that language")
+    parser.add_argument(
+        '--fedoraaction',
+        default="test",
+        help="Enter the actionpath")
     args=vars(parser.parse_args())
     main(args)
