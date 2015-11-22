@@ -31,10 +31,13 @@ def execute_queries(queries,url):
 
 #This function will query blazegraph for            
 def get_dataForEs(args):
+    startSparql =datetime.datetime.now()  #Start a timer for the query portion
+    print("Starting {} at {}".format(
+        "SPARQL Query",
+        startSparql.isoformat()))
     url = args['triplestore']
-    qFile = args.get('queryfile','elasticsearchquery.rq')  
+    qFile = args.get('queryfile','elasticsearchquery.rq')  #File containing the SPARQL query 
     mode = args.get('mode','normal')
-    sFileName = args.get('bulkSaveFile','es_bulk_upload.txt')
     
     #read the query string file
     qFile_fo = open(qFile, encoding="utf-8")
@@ -46,49 +49,36 @@ def get_dataForEs(args):
          url,
          data={"query": qStr,
          'format':'json'})
-    esItems = result.json().get('results').get('bindings')     	
+    esItems = result.json().get('results').get('bindings') 
     
-    #check mode
-    if mode != 'debug':
-        sFile = open(sFileName,"wb")
-        counter = 0
-        fileIncrement = 1
+    #end query timer    	
+    endSparql = datetime.datetime.now()
+    print("\nFinished {} at {}, total time={} seconds".format(
+        "SPARQL query",
+        endSparql.isoformat(),
+        (endSparql-startSparql).seconds))
     
-    #iterate of query results and build the elasticsearch files for bulk upload
+    #iterate over query results and build the elasticsearch files for bulk upload
     total = 0
     actionList = []
     for i in esItems:
-        total = total + 1
-         
+        total = total + 1         
         if mode != 'debug':
-            #inner loop to parse the results into separate files. If files are too large
-            #elasticsearch will not pull all of the items
-            counter = counter + 1 
-            if counter > 80:
-                sFile.close()
-                fileIncrement = fileIncrement+1
-                sFile = open(sFileName+str(fileIncrement),"wb")
-                counter = 0
-            jsonItem = json.loads('{'+i['obj']['value']+'}')
-            actionItem = {
+            jsonItem = json.loads('{'+i['obj']['value']+'}')  #convert SPARQL item result to json object
+            actionItem = {  #create the action item to be pushed into es
                 '_op_type': 'create',
-                '_index': 'index-name',
-                '_type': 'document',
-                '_id': i['resource']['value'],
-                'doc': jsonItem
+                '_index': 'bf',
+                '_type': 'reference',
+                '_id': i['resource']['value'], #_id is using the ?resource field from the query
+                'doc': jsonItem  #doc contains the Json object
             }
-            actionList.append(actionItem)
-            #sFile.write(('{ "create" : { "_index" : "bf", "_type" : "reference", "_id" : "'+ i['resource']['value'] + '" } }\n').encode())
-            
-            print(json.dumps(jsonItem,indent=2))
-            #sFile.write((json.dumps(jsonItem).encode()+('\n').encode()))
+            actionList.append(actionItem) #add the the item to the list of actions for the bulk loader
         else:
-            #if in debug mode post each item individually in print any errors
+            #if in debug mode post each item individually and print any errors
             print(total,". ",i['resource']['value'])
             lFile=(('{ "create" : { "_index" : "bf", "_type" : "reference", "_id" : "'+ i['resource']['value'] + '" } }\n'))
             lFile+=(('{'+i['obj']['value']+'}\n').encode())
             jsonItem = json.loads('{'+i['obj']['value']+'}')
-            #testLoad = json.loads('{'+i['obj']['value']+'}')
             result = requests.post("http://localhost:9200/_bulk",
                 data = lFile)
             rNote = json.loads((result.content).decode())
@@ -98,33 +88,21 @@ def get_dataForEs(args):
                     print(json.dumps(item.get("create")))
                
                                 
-    #read the written files and push to elasticsearch
+    #push items to es using bulk helper
     if mode != 'debug': 
-        print(total," Records in ",fileIncrement," Files")
-        sFile.close()
+        print(total," items to post to elasticsearch")
         print("Now pushing into ElasticSearch")
-        i = 0
         es = Elasticsearch(["http://localhost:9200"])
-        helpers.bulk(es,actionList)
-        '''while i <  fileIncrement:
-            if i==0:
-    	          fName = sFileName
-            else:
-                fName = sFileName + str(i)
-            eFile = open(fName,'rb')
-            result = requests.post("http://localhost:9200/_bulk",
-                data = eFile.read())
-            rNote = json.loads((result.content).decode())
-            print(json.dumps(rNote,indent=2))
-            if rNote.get("errors"):
-                print(fName)
-                for item in rNote.get("items"):
-                    if (item.get("create").get("status") != 409) and (item.get("create").get("status") != 201) :
-                        print(json.dumps(item.get("create").get("_id")))	
-                        print("----- ",json.dumps(item.get("create").get("error").get("caused_by",{}).get("reason")))
-            eFile.close
-            print (result.headers," ",result.status_code)
-            i+=1'''
+        helpers.bulk(
+            es,
+            actionList,
+            stats_only=True
+            )
+    endEs = datetime.datetime.now()
+    print("\nFinished {} at {}, total time={} seconds".format(
+        "Processing and Pushing to Es",
+        endEs.isoformat(),
+        (endEs-endSparql).seconds))
 
 #This function will generate a list of resource URIs as strings based on a filter for triples            
 def get_referenceURIs(filterTriple,url):
