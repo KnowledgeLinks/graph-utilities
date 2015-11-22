@@ -19,7 +19,7 @@ INSERT
 {
   ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-1/iso639-1_Language> .
   ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-1> .
-  ?bfLangURI bf:iso639_1 ?langCode .
+  ?bfLangURI bfe:iso6391 ?langCode .
 }
 WHERE
 {
@@ -398,7 +398,7 @@ DELETE
 }
 INSERT
 {
-  ?langid bf:iso639_2 ?langIsoCode .
+  ?langid bfe:iso6392 ?langIsoCode .
 }
 WHERE
 {
@@ -475,12 +475,12 @@ CONFIRM_LANGUAGE_6392_CODES_FROM_ISO6392_FILE = """#CONFIRM_LANGUAGE_6392_CODES_
 DELETE
 {
   ?6392id <http://www.loc.gov/mads/rdf/v1#code> ?langCode.
-  ?bfLangURI bf:iso639_2 ?langCode.
+  ?bfLangURI bfe:iso6392 ?langCode.
 }
 INSERT
 {
   ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-2/iso639-2_Language> .
-  ?bfLangURI bf:iso639_2 ?langCode.
+  ?bfLangURI bfe:iso6392 ?langCode.
 }
 WHERE
 {
@@ -582,7 +582,7 @@ DELETE
                <http://id.loc.gov/vocabulary/iso639-5/iso639-5_Language>,
                <http://id.loc.gov/vocabulary/iso639-5>;
              owl:sameAs ?6395id;
-             bf:iso639_5 ?langCode .
+             bfe:iso6395 ?langCode .
   ?6395id a <http://id.loc.gov/vocabulary/iso639-5/iso639-5_Language>.
   ?6395id <http://www.loc.gov/mads/rdf/v1#code> ?langCode .
 }
@@ -593,7 +593,7 @@ INSERT
                <http://id.loc.gov/vocabulary/iso639-5/iso639-5_Language>,
                <http://id.loc.gov/vocabulary/iso639-5>;
              owl:sameAs ?6395id;
-             bf:iso639_5 ?langCode .
+             bfe:iso6395 ?langCode .
 }
 
 WHERE
@@ -697,12 +697,12 @@ CONFIRM_LANGUAGE_6395_CODES_FROM_ISO6395_FILE = """#CONFIRM_LANGUAGE_6395_CODES_
 DELETE
 {
   ?6395id <http://www.loc.gov/mads/rdf/v1#code> ?langCode.
-  ?bfLangURI bf:iso639_5 ?langCode.
+  ?bfLangURI bfe:iso6395 ?langCode.
 }
 INSERT
 {
   ?bfLangURI a <http://id.loc.gov/vocabulary/iso639-5/iso639-5_Language> .
-  ?bfLangURI bf:iso639_5 ?langCode.
+  ?bfLangURI bfe:iso6395 ?langCode.
 }
 WHERE
 {
@@ -815,7 +815,7 @@ INSERT
 WHERE
 {
   ?langid a	bf:Language .
-  ?langid bf:iso639_2 ?langIsoCode .
+  ?langid bfe:iso6392 ?langIsoCode .
   SERVICE <http://DBpedia.org/sparql>
     { 
       ?dbPediaResource dbo:iso6392Code ?langIsoCode .
@@ -846,7 +846,7 @@ WHERE
   		?bfLangId owl:sameAs ?dbpObject .
       }
 	FILTER (!bound(?dbpObject)) .
-  ?bfLangId bf:iso639_2 ?code .
+  ?bfLangId bfe:iso6392 ?code .
    SERVICE <http://DBpedia.org/sparql>
     { 
       ?dbPediaResource dbo:iso6393Code ?code .
@@ -870,7 +870,7 @@ WHERE
   		?bfLangId owl:sameAs ?dbpObject .
       }
 	FILTER (!bound(?dbpObject)) .
-  	?bfLangId bf:iso639_5 ?code .
+  	?bfLangId bfe:iso6395 ?code .
   	BIND (STRLANG(STR(?code),"en") as ?enCode) .
   
 }"""
@@ -918,7 +918,7 @@ WHERE
   		?bfLangId owl:sameAs ?dbpObject .
       }
 	FILTER (!bound(?dbpObject)) .
-  ?bfLangId bf:iso639_1 ?code .
+  ?bfLangId bfe:iso6391 ?code .
    SERVICE <http://DBpedia.org/sparql>
     { 
       ?dbPediaResource dbo:iso6391Code ?code .
@@ -942,8 +942,8 @@ WHERE
   		?bfLangId owl:sameAs ?dbpObject .
     }
 	FILTER (!bound(?dbpObject)) .
-	OPTIONAL {?bfLangId bf:iso639_5 ?code .}
-  OPTIONAL {?bfLangId bf:iso639_2 ?code .}
+	OPTIONAL {?bfLangId bfe:iso6395 ?code .}
+  OPTIONAL {?bfLangId bfe:iso6392 ?code .}
   BIND (URI(CONCAT("http://dbpedia.org/resource/ISO_639:",?code)) AS ?dbRedirect) .
 }"""
 
@@ -1049,7 +1049,7 @@ WHERE
   OPTIONAL {?id2 owl:sameAs ?bfLangId.} .
   FILTER (!bound(?id2))
 }"""
-CHANGE_TO_FEDORA_URI = """#CHANGE_TO_FEDORA_URI
+CHANGE_BASE_URI = """#CHANGE_BASE_URI
 """ + PREFIX + """
 DELETE
 { 
@@ -1062,7 +1062,7 @@ INSERT
 WHERE
 {
   ?bfLangId a bf:Language .
-  BIND (URI(REPLACE(STR(?bfLangId),"http://id.loc.gov/vocabulary/languages/","http://localhost:8080/fedora/rest/ref/")) AS ?fedoraURI)
+  BIND (URI(REPLACE(STR(?bfLangId),"http://id.loc.gov/vocabulary/languages/","http://knowledgelinks.io/ns/bibcat/")) AS ?fedoraURI)
   ?bfLangId ?p ?o 
 }"""
 
@@ -1112,7 +1112,7 @@ workflow = [
     INSERT_DBPEDIA_ABSTRACTS_OWL,
     INSERT_SOURCE_REFERENCE,
     ADD_OWLSAMEAS_TAG_FOR_LANG_URI,
-    CHANGE_TO_FEDORA_URI,
+    CHANGE_BASE_URI,
     CLEAN_UP_ORPHAN_BLANK_NODES,
     CLEAN_UP_ORPHAN_BLANK_NODES,
     CLEAN_UP_ORPHAN_BLANK_NODES, 

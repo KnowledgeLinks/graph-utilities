@@ -1,10 +1,20 @@
-PREFIX = """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX bf: <http://bibframe.org/vocab/>
-PREFIX kls: <http://knowledgelinks.io/external/resource/source/>
-PREFIX dbo: <http://dbpedia.org/ontology/>
-PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX = """prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+prefix skos: <http://www.w3.org/2004/02/skos/core#>
+prefix bf: <http://bibframe.org/vocab/>
+prefix klb: <http://knowledgelinks.io/ns/bibcat/>
+prefix dbo: <http://dbpedia.org/ontology/>
+prefix dbp: <http://dbpedia.org/property/>
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix sesame: <http://www.openrdf.org/schema/sesame#>
+prefix owl: <http://www.w3.org/2002/07/owl#>
+prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+prefix fn: <http://www.w3.org/2005/xpath-functions#>
+prefix foaf: <http://xmlns.com/foaf/0.1/>
+prefix dc: <http://purl.org/dc/elements/1.1/>
+prefix hint: <http://www.bigdata.com/queryHints#>
+prefix bd: <http://www.bigdata.com/rdf#>
+prefix bds: <http://www.bigdata.com/rdf/search#>
+prefix bfe: <http://bibframe.org/extensions/>
 """
 
 CONSTRUCT_GRAPH_PRE_URI = """CONSTRUCT
