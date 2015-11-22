@@ -58,7 +58,7 @@ def get_dataForEs(args):
         endSparql.isoformat(),
         (endSparql-startSparql).seconds))
     
-    #iterate over query results and build the elasticsearch files for bulk upload
+    #iterate over query results and build the elasticsearch actionList for bulk upload
     total = 0
     actionList = []
     for i in esItems:
