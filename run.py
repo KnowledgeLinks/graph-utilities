@@ -15,6 +15,25 @@ from sparql import CONSTRUCT_GRAPH_PRE_LANG
 from sparql import CONSTRUCT_GRAPH_POST_LANG
 from sparql import CONSTRUCT_GRAPH_END
 
+# This is in-lue of a config file until such time it makes sense to create one  
+def config():
+   settings = {
+       'triplestore':"http://localhost:8080/bigdata/sparql",
+       'pulltype':"all",
+       'format':'application/x-turtle',
+       'filename':"default",
+       'langpref':"all languages",
+       'queryfile':"elasticsearchquery.rq",
+       'es_url':'http://localhost:9200',
+       'bulkactions':{                  
+            '_op_type': 'create',
+            '_index': 'bf2',
+            '_type': 'reference',
+            '_id': ['field','resource']                       
+            }
+       }
+   return settings
+   
 def execute_queries(queries,url):
     for i, sparql in enumerate(queries):
         print("{}.".format(i+1),end="")
@@ -29,15 +48,31 @@ def execute_queries(queries,url):
                 url,
                 result.text))
 
-#This function will query blazegraph for            
-def get_dataForEs(args):
+#This function will query the sparl endpoint and create those items in elasticsearch         
+def push_dataToElasticsearch(args):
+    #set initial args\parameters
+    c = config()
+    url = args.get('triplestore',c['triplestore'])            #URL to sparql endpoint of the triplestore
+    esUrl = args.get('es_url',c['es_url'])                    #URL to elasticsearch
+    qFile = args.get('queryfile',c['queryfile'])              #File containing the SPARQL query 
+    mode = args.get('mode','normal')                          #Turn on debug mode
+    aargs = args.get('bulkactions',c['bulkactions'])
+    #************************* Bulkactions arg passing needs corrected *******************
+    actionSettings = {                  
+            '_op_type': aargs.get('_op_type',c['bulkactions']['_op_type']),
+            '_index': aargs.get('_index',c['bulkactions']['_index']),
+            '_type': aargs.get('_type',c['bulkactions']['_type']),
+            '_id': aargs.get('_id',c['bulkactions']['_id'])                      
+            }
+    
+    
+    args.get('bulkactions',c['bulkactions']).get('_op_type',c['bulkactions']['_op_type']), #bulk update settings
+    
     startSparql =datetime.datetime.now()  #Start a timer for the query portion
     print("Starting {} at {}".format(
         "SPARQL Query",
         startSparql.isoformat()))
-    url = args['triplestore']
-    qFile = args.get('queryfile','elasticsearchquery.rq')  #File containing the SPARQL query 
-    mode = args.get('mode','normal')
+    
     
     #read the query string file
     qFile_fo = open(qFile, encoding="utf-8")
@@ -63,23 +98,25 @@ def get_dataForEs(args):
     actionList = []
     for i in esItems:
         total = total + 1         
+        if actionSettings['_id'][0] == 'field':
+            itemId = i[actionSettings['_id'][1]]['value'] 
         if mode != 'debug':
             jsonItem = json.loads('{'+i['obj']['value']+'}')  #convert SPARQL item result to json object
             actionItem = {  #create the action item to be pushed into es
-                '_op_type': 'create',
-                '_index': 'bf',
-                '_type': 'reference',
-                '_id': i['resource']['value'], #_id is using the ?resource field from the query
+                '_op_type': actionSettings['_op_type'],
+                '_index': actionSettings['_index'],
+                '_type': actionSettings['_type'],
+                '_id': itemId, 
                 'doc': jsonItem  #doc contains the Json object
             }
-            actionList.append(actionItem) #add the the item to the list of actions for the bulk loader
+            actionList.append(actionItem) #add the item to the list of actions for the bulk loader
         else:
             #if in debug mode post each item individually and print any errors
             print(total,". ",i['resource']['value'])
             lFile=(('{ "create" : { "_index" : "bf", "_type" : "reference", "_id" : "'+ i['resource']['value'] + '" } }\n'))
             lFile+=(('{'+i['obj']['value']+'}\n').encode())
             jsonItem = json.loads('{'+i['obj']['value']+'}')
-            result = requests.post("http://localhost:9200/_bulk",
+            result = requests.post(esUrl + "/_bulk",
                 data = lFile)
             rNote = json.loads((result.content).decode())
             if rNote.get("errors"):
@@ -92,7 +129,7 @@ def get_dataForEs(args):
     if mode != 'debug': 
         print(total," items to post to elasticsearch")
         print("Now pushing into ElasticSearch")
-        es = Elasticsearch(["http://localhost:9200"])
+        es = Elasticsearch([esUrl])
         helpers.bulk(
             es,
             actionList,
@@ -138,11 +175,12 @@ def generate_fedora_refs(tripleStoreURL,refType):
 
 #This function will pull a graph from the triplestore based on a resource URI or a group of resource URIs
 def pull_graph(args):
-    url = args['triplestore']
-    pulltype = args.get('pulltype','resource')  
-    header_format = args.get('format','application/x-turtle')
-    fName = args.get('filename','default')
-    langpref = args.get('langpref','all languages')
+    c=config()
+    url = args.get('triplestore',c['triplestore'])
+    pulltype = args.get('pulltype',c['pulltype'])  
+    header_format = args.get('format',c['format'])
+    fName = args.get('filename',c['filename'])
+    langpref = args.get('langpref',c['langpref'])
     returnType = args.get('returntype','file')
 
     if pulltype=="resource":
@@ -190,11 +228,11 @@ def main(args):
         args['workflow'],
         start.isoformat()))
     if args['workflow'].startswith("languages"):
-        execute_queries(languages, args.triplestore)
+        execute_queries(languages, args['triplestore'])
     if args['workflow'].startswith("test"):
-        test_queries(languages, args.triplestore)
+        test_queries(languages, args['triplestore'])
     if  args['workflow'].startswith("elastic"):
-        get_dataForEs(args)
+        push_dataToElasticsearch(args)
     if  args['workflow'].startswith("graph"):
         pull_graph(args)
     if args['workflow'].startswith("fedora"):
@@ -206,6 +244,7 @@ def main(args):
         (end-start).seconds/60.0))
 
 if __name__ == '__main__':
+    c = config()
     parser=argparse.ArgumentParser()
     parser.add_argument(
         'workflow',
@@ -213,11 +252,11 @@ if __name__ == '__main__':
          help="Run SPARQL workflow, choices: languages, fedora, graph, elastic")
     parser.add_argument(
         '--triplestore',
-        default="http://localhost:8080/bigdata/sparql",
+        default=c['triplestore'],
         help="Triplestore URL")
     parser.add_argument(
         '--pulltype',
-        default="all",
+        default=c['pulltype'],
         help="Write triple statement or resourceURI",
         choices=["all","resource"])
     parser.add_argument(
@@ -229,15 +268,15 @@ if __name__ == '__main__':
                 select the desired resources. Var ?s1 must resolve to the resourceURI list""")
     parser.add_argument(
         '--format',
-        default="application/x-turtle",
+        default=c['format'],
         help="Sets content-type for request in the header")
     parser.add_argument(
         '--filename',
-        default="default",
+        default=c['filename'],
         help="Specifies filename for output file, default from sparql header")
     parser.add_argument(
         '--langpref',
-        default="all languages",
+        default=c['langpref'],
         help="Enter the iso 639-1 two letter language code to return a graph with only that language")
     parser.add_argument(
         '--fedoraaction',
@@ -245,15 +284,21 @@ if __name__ == '__main__':
         help="Enter the actionpath")
     parser.add_argument(
         '--queryfile',
-        default="elasticsearchquery.rq",
+        default=c['queryfile'],
         help="File Containing the query to run")
-    parser.add_argument(
-        '--bulksavefile',
-        default="es_bulk_save.txt",
-        help="filename to save the file for bulk elasticsearch upload")
     parser.add_argument(
         '--mode',
         default="normal",
         help="enter 'normal' or 'debug'")
+    parser.add_argument(
+        '--es_url',
+        default=c['es_url'],
+        help="enter 'normal' or 'debug'")
+    parser.add_argument(
+        '--bulkactions',
+        default=c['bulkactions'],
+        help="change bulk upload settings'")
     args=vars(parser.parse_args())
     main(args)
+    
+
