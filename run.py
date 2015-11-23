@@ -106,10 +106,11 @@ def push_dataToElasticsearch(args):
                 '_op_type': actionSettings['_op_type'],
                 '_index': actionSettings['_index'],
                 '_type': actionSettings['_type'],
-                '_id': itemId, 
-                'doc': jsonItem  #doc contains the Json object
+                '_id': itemId,
+                '_source': jsonItem                
             }
             actionList.append(actionItem) #add the item to the list of actions for the bulk loader
+            #actionList.append(jsonItem)
         else:
             #if in debug mode post each item individually and print any errors
             print(total,". ",i['resource']['value'])
