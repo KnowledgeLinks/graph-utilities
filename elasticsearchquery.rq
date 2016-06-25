@@ -1,0 +1,130 @@
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+prefix skos: <http://www.w3.org/2004/02/skos/core#> 
+prefix bf: <http://bibframe.org/vocab/> 
+prefix klb: <http://knowledgelinks.io/ns/bibcat/> 
+prefix dbo: <http://dbpedia.org/ontology/> 
+prefix dbp: <http://dbpedia.org/property/> 
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+prefix sesame: <http://www.openrdf.org/schema/sesame#> 
+prefix owl: <http://www.w3.org/2002/07/owl#> 
+prefix xsd: <http://www.w3.org/2001/XMLSchema#> 
+prefix fn: <http://www.w3.org/2005/xpath-functions#> 
+prefix foaf: <http://xmlns.com/foaf/0.1/> 
+prefix dc: <http://purl.org/dc/elements/1.1/> 
+prefix hint: <http://www.bigdata.com/queryHints#> 
+prefix bd: <http://www.bigdata.com/rdf#> 
+prefix bds: <http://www.bigdata.com/rdf/search#> 
+prefix bfe: <http://bibframe.org/extensions/> 
+SELECT ?resource (GROUP_CONCAT(?data; SEPARATOR=",") AS ?obj)
+{
+  {
+    #Group by Types
+    SELECT ?resource ?data
+      {
+        {SELECT ?resource (GROUP_CONCAT(CONCAT('"',?label,'"'); SEPARATOR =",") AS ?type)
+        WHERE
+        {
+         #BIND (<http://localhost:8080/fedora/rest/ref/ceb> AS ?resource)
+          {
+            {
+              ?resource a ?rType .
+              ?rType rdfs:label ?label
+            } UNION {
+              ?resource a ?rType .
+              ?rType rdfs:subClassOf ?sub .
+              ?sub rdfs:label ?label
+              FILTER (?sub!=bf:Resource)
+            }
+          }
+        }
+        GROUP BY ?resource}
+        BIND (CONCAT("\"Type\":[",?type,"]") as ?data)
+      }
+  } UNION {
+  #Group By Display
+    SELECT ?resource ?data
+	{
+	  {
+		SELECT ?resource (GROUP_CONCAT(?vars4; SEPARATOR=",") as ?vars5)
+		{   
+		  {
+			SELECT ?resource ?langType (GROUP_CONCAT(?vars2; SEPARATOR=",") AS ?vars3)
+			{
+			  {
+				SELECT ?resource ?langType ?label (GROUP_CONCAT(CONCAT("\"",?o,"\""); SEPARATOR=",") AS ?vars)
+				WHERE
+				{
+				  #BIND (<http://localhost:8080/fedora/rest/ref/ceb> AS ?resource)
+				  {      
+					?resource a bf:Language .
+					?resource ?p ?o1.
+					BIND (lang(?o1) as ?langType).
+					?p rdfs:label ?label .
+					BIND (REPLACE(REPLACE(?o1,"\\\\","!#-%"),'"',';:#^') AS ?o) . 
+					FILTER (?langType!="") .
+					FILTER (!ISBLANK(?resource)) .
+				  }
+				}
+				GROUP BY ?resource ?langType ?label 
+			  }
+			  BIND (CONCAT("\"",?label,"\":[",?vars,"]") as ?vars2)	  
+			}
+			GROUP BY ?resource ?langType
+		  }
+		  BIND (CONCAT("\"",?langType,"\":{",?vars3,"}") as ?vars4)
+		}
+		GROUP BY ?resource
+	  }
+	  BIND (CONCAT("\"Display\":{\"Lang Label\":{",?vars5,"}}") AS ?data)
+	}
+  } UNION {
+    #Group by Identifiers
+	{
+	  SELECT ?resource ?data
+      {
+        {
+		  SELECT ?resource (GROUP_CONCAT(?identifier; SEPARATOR= ",") As ?ids)
+          {
+            {
+			  SELECT ?resource ?identifier
+              {  
+                {
+                  SELECT ?resource ?label (GROUP_CONCAT(CONCAT('"',?identifierValue,'"'); SEPARATOR =",") AS ?identifiers)
+                  WHERE
+                  {
+                    #BIND (<http://localhost:8080/fedora/rest/ref/ceb> AS ?resource)
+                    {
+                      # find all the identifier property URIs
+                      ?identifierID rdfs:subPropertyOf+ <http://bibframe.org/vocab/identifier>.
+                      # find all the triples with property predicates
+                      ?resource ?identifierID ?identifierValue .
+                      ?identifierID rdfs:label ?label .
+                    }
+                  }
+                  GROUP BY ?resource ?label
+                }
+                BIND (CONCAT("\"",?label,"\":","[",?identifiers,"]") as ?identifier)
+              }
+            } UNION {
+              SELECT ?resource ?identifier
+              {
+                {
+                  SELECT ?resource (GROUP_CONCAT(CONCAT("\"",STR(?URIs),"\""); SEPARATOR=",") AS ?identifiers)
+                  {
+                    #BIND (<http://localhost:8080/fedora/rest/ref/ceb> AS ?resource) .	
+                    ?resource owl:sameAs ?URIs .
+                  }
+                  GROUP BY ?resource
+                }
+                BIND (CONCAT("\"URI\":","[",?identifiers,"]") as ?identifier)
+              }
+            } 
+          }
+          GROUP BY ?resource
+		}
+        BIND (CONCAT("\"Identified By\":{",?ids,"}") As ?data)
+      }
+	}
+  }
+}
+GROUP BY ?resource

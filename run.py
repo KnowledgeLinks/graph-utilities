@@ -9,6 +9,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 from sparql.general import*
 from sparql.languages import workflow as languages
+from sparql.subjects import workflow as subjects
 from sparql import CONSTRUCT_GRAPH_PRE_URI
 from sparql import CONSTRUCT_GRAPH_POST_URI
 from sparql import CONSTRUCT_GRAPH_PRE_LANG
@@ -18,7 +19,7 @@ from sparql import CONSTRUCT_GRAPH_END
 # This is in-lue of a config file until such time it makes sense to create one  
 def config():
    settings = {
-       'triplestore':"http://localhost:8080/bigdata/sparql",
+       'triplestore':"http://localhost:9999/bigdata/sparql",
        'pulltype':"all",
        'format':'application/x-turtle',
        'filename':"default",
@@ -27,7 +28,7 @@ def config():
        'es_url':'http://localhost:9200',
        'bulkactions':{                  
             '_op_type': 'create',
-            '_index': 'bf2',
+            '_index': 'bf',
             '_type': 'reference',
             '_id': ['field','resource']                       
             }
@@ -230,6 +231,8 @@ def main(args):
         start.isoformat()))
     if args['workflow'].startswith("languages"):
         execute_queries(languages, args['triplestore'])
+    if args['workflow'].startswith("subjects"):
+        execute_queries(subjects, args['triplestore'])
     if args['workflow'].startswith("test"):
         test_queries(languages, args['triplestore'])
     if  args['workflow'].startswith("elastic"):
@@ -249,8 +252,8 @@ if __name__ == '__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument(
         'workflow',
-         choices=['languages','fedora','graph','elastic'],
-         help="Run SPARQL workflow, choices: languages, fedora, graph, elastic")
+         choices=['languages', 'subjects', 'fedora','graph','elastic'],
+         help="Run SPARQL workflow, choices: languages, subjects, fedora, graph, elastic")
     parser.add_argument(
         '--triplestore',
         default=c['triplestore'],

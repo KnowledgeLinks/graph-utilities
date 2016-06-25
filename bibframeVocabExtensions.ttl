@@ -1,0 +1,99 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix bf: <http://bibframe.org/vocab/> .
+@prefix klb: <http://knowledgelinks.io/ns/bibcat/> .
+@prefix dbo: <http://dbpedia.org/ontology/> .
+@prefix dbp: <http://dbpedia.org/property/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sesame: <http://www.openrdf.org/schema/sesame#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix fn: <http://www.w3.org/2005/xpath-functions#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix hint: <http://www.bigdata.com/queryHints#> .
+@prefix bd: <http://www.bigdata.com/rdf#> .
+@prefix bds: <http://www.bigdata.com/rdf/search#> .
+@prefix bfe: <http://bibframe.org/extensions/> .
+
+bfe:iso639 a rdf:Property;	
+	rdfs:domain	bf:Language;	
+	rdfs:range	rdfs:Literal;	
+	rdfs:subPropertyOf	bf:identifier;	
+	rdfs:comment	"ISO 639 is a set of standards concerned with the representation of names for language and language groups";	
+	rdfs:label	"ISO 639";	
+	bf:hasAuthority <http://knowledgelinks.io> .
+	
+bfe:iso6391 a rdf:Property;	
+	rdfs:domain	bf:Language;	
+	rdfs:range	rdfs:Literal;	
+	rdfs:subPropertyOf	bfe:iso639;	
+	rdfs:comment	"ISO 639 Part 1 - two letter codes for the representation of names of languages. Managed by InfoTerm";	
+	rdfs:label	"ISO 639-1";
+	bf:hasAuthority <http://knowledgelinks.io> .	
+	
+bfe:iso6392 a rdf:Property;	
+	rdfs:domain	bf:Language;	
+	rdfs:range	rdfs:Literal;	
+	rdfs:subPropertyOf	bfe:iso639;	
+	rdfs:comment	"ISO 639 Part 2 - Three letter codes for the representation of names of languages. The US Library of Congress is the registration authority for ISO 639-2";	
+	rdfs:label	"ISO 639-2";
+	bf:hasAuthority <http://knowledgelinks.io> .
+	
+bfe:iso6393 a rdf:Property;	
+	rdfs:domain	bf:Language;	
+	rdfs:range	rdfs:Literal;	
+	rdfs:subPropertyOf	bfe:iso639;	
+	rdfs:comment	"ISO 639 Part 3 -  Comprehensive coverage of languages, is an international standard for language codes in the ISO 639 series. It is an extension of the ISO 639-2 codes and the registration authority is SIL International";	
+	rdfs:label	"ISO 639-3";
+	bf:hasAuthority <http://knowledgelinks.io> .
+	
+bfe:iso6395 a rdf:Property;	
+	rdfs:domain	bf:Language;	
+	rdfs:range	rdfs:Literal;	
+	rdfs:subPropertyOf	bfe:iso639;	
+	rdfs:comment	"ISO 639 Part 5 -  Codes for the representation of names for language families and groups. The US Library of Congress is the registration authority for ISO 639-5";	
+	rdfs:label	"ISO 639-5";
+	bf:hasAuthority <http://knowledgelinks.io> .
+	
+bfe:lcsh a rdf:Property;	
+	rdfs:domain	bf:LocSubject;	
+	rdfs:range	rdfs:Literal;	
+	rdfs:subPropertyOf	bf:identifier;	
+	rdfs:comment	"US Library of Congress Subject Heading Number";	
+	rdfs:label	"LCSH";
+	bf:hasAuthority <http://knowledgelinks.io> .
+	
+bfe:lcc a rdf:Property;	
+	rdfs:domain	bf:LocClassification;	
+	rdfs:range	rdfs:Literal;	
+	rdfs:subPropertyOf	bf:identifier;	
+	rdfs:comment	"US Library of Congress Classification identifier";	
+	rdfs:label	"LCC";
+	bf:hasAuthority <http://knowledgelinks.io> .
+	
+bf:LocSubject a rdfs:Class;
+	rdfs:subClassOf bf:Topic;
+	rdfs:label "US LoC Subject Heading";
+	rdfs:comment "Library of Congress Subject Headings (LCSH) has been actively maintained since 1898 to catalog materials held at the Library of Congress. By virtue of cooperative cataloging other libraries around the United States also use LCSH to provide subject access to their collections. In addition LCSH is used internationally, often in translation. LCSH in this service includes all Library of Congress Subject Headings, free-floating subdivisions (topical and form), Genre/Form headings, Children's (AC) headings, and validation strings* for which authority records have been created. The content includes a few name headings (personal and corporate), such as William Shakespeare, Jesus Christ, and Harvard University, and geographic headings that are added to LCSH as they are needed to establish subdivisions, provide a pattern for subdivision practice, or provide reference structure for other terms. This content is expanded beyond the print issue of LCSH (the \"red books\") with inclusion of validation strings." .
+	
+bf:shortLabel a rdf:Property;	
+	rdfs:domain	bf:Resource;	
+	rdfs:range	rdfs:Literal;	
+	rdfs:comment	"Provides a shortend version of the standard label.";	
+	rdfs:label	"Short Label";
+	bf:hasAuthority <http://knowledgelinks.io> .
+
+bf:labelVariant a rdf:Property;	
+	rdfs:domain	bf:Resource;	
+	rdfs:range	rdfs:Literal;	
+	rdfs:comment	"An alternative name to the primary label";	
+	rdfs:label	"Variant Name";
+	bf:hasAuthority <http://knowledgelinks.io> .
+	
+bf:useForMADS a rdf:Property;	
+	rdfs:domain	bf:Resource;	
+	rdfs:range	rdfs:Literal;	
+	rdfs:comment	"Undertermined at this time. Need to clarify with LoC.";	
+	rdfs:label	"useForMads";
+	bf:hasAuthority <http://knowledgelinks.io> .
